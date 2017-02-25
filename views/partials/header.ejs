@@ -1,0 +1,28 @@
+<header class="header color">
+    <div class="container header__content">
+        <div class="row">
+            <div class="col-xs-2">
+                <img src="/img/logo.png" alt="fpga-lab" class="header__logo">
+            </div>
+            <div class="col-xs-8 text-center">
+                <h1>FPGA - лаборатория</h1>
+            </div>
+            <div class="col-xs-2">
+                <div class="user-info container-fluid">
+                    <div class="row">
+                        <div class="col-xs-5 user-info__avatar">
+                            <i class="fa fa-user-circle fa-3x"></i>
+                        </div>
+                        <div class="col-xs-7">
+                            <% if (user) { %>
+                            <div class="user-info__login"><%= user.get('name') %></div>
+                            <div class="user-info__exit"><a href="#exit" class="user-info__exit-link black-text">Выход</a></div>
+                            <% } %>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="hide-header__control text-center" data-control="state" data-state="hide-header"><i class="fa fa-angle-up black-text"></i></div>
+</header>

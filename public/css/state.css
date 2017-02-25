@@ -1,0 +1,50 @@
+/* HIDE-HEADER */
+.hide-header .file-container,
+.hide-header .console,
+.hide-header .video-container {
+    height: 100vh;
+}
+
+.hide-header .header {
+    height: 0;
+}
+.hide-header .header__content {
+    -webkit-transition: padding .25s ease-in-out;
+    -o-transition: padding .25s ease-in-out;
+    transition: padding .25s ease-in-out;
+    padding: 0;
+}
+.hide-header__control {
+    background-color: #fff;
+    height: 20px;
+    width: 50px;
+    position: absolute;
+    bottom: -10px;
+    left: 50%;
+    margin-left: -25px;
+    z-index: 1;
+    cursor: pointer;
+    border-radius: 10px;
+
+    -webkit-transition-property: bottom, opacity;
+    -o-transition-property: bottom, opacity;
+    transition-property: bottom, opacity;
+
+    -webkit-transition-duration: .25s;
+    -o-transition-duration: .25s;
+    transition-duration: .25s;
+
+    -webkit-transition-timing-function: ease-in-out;
+    -o-transition-timing-function: ease-in-out;
+    transition-timing-function: ease-in-out;
+    opacity: .75;
+}
+.hide-header__control:hover {
+    opacity: 1;
+}
+.hide-header .hide-header__control:hover {
+    bottom: -22px;
+}
+.hide-header .hide-header__control .fa:before {
+    content: "\f107";
+}

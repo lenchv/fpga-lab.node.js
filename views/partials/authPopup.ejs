@@ -1,0 +1,76 @@
+<div class="modal fade" tabindex="-1" role="dialog" id="auth_popup">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">Авторизация</h4>
+            </div>
+            <div class="modal-body">
+                <div class="auth__container clearfix">
+                    <div class="auth__wrapper">
+                        <div class="auth-form__container">
+                            <form action="" method="post" class="auth-form text-center">
+                                <div class="input-group input-group-lg auth-form__input-group">
+                                    <span class="input-group-addon" id="email_auth">@</span>
+                                    <input type="email" name="email" class="form-control auth-form__input" placeholder="E-mail" aria-describedby="email_auth" data-message="Введите правильный e-mail">
+                                    <span class="fa auth-form__input-notification auth-form__input-notification_alert" data-message="Введите правильный e-mail"></span>
+                                    <span class="fa auth-form__input-notification auth-form__input-notification_success"></span>
+                                </div>
+                                <div class="input-group input-group-lg auth-form__input-group">
+                                    <span class="input-group-addon" id="pass_auth">#</span>
+                                    <input type="password" name="password" class="form-control auth-form__input" placeholder="Пароль" aria-describedby="pass_auth" pattern="[a-zA-Z0-9@!#$%\._-]{6,}">
+                                    <span class="fa auth-form__input-notification auth-form__input-notification_alert" data-message="Пароль должен содержать минимум 6 символов"></span>
+                                    <span class="fa auth-form__input-notification auth-form__input-notification_success"></span>
+                                </div>
+                                <button name="auth" class="btn auth-form__btn color">Войти</button>
+                                <a href="#regsitration" class="register-toggle">Зарегистрироваться</a>
+                            </form>
+                        </div><!-- /.auth-form__container -->
+
+                        <div class="register-form__container">
+                            <form action="" method="post" class="auth-form text-center">
+                                <div class="input-group input-group-lg auth-form__input-group">
+                                    <span class="input-group-addon" id="email_reg">@</span>
+                                    <input type="email" name="email" class="form-control auth-form__input" placeholder="E-mail*" aria-describedby="email_reg" data-message="Введите правильный e-mail" required>
+                                    <span class="fa auth-form__input-notification auth-form__input-notification_alert" data-message="Введите правильный e-mail"></span>
+                                    <span class="fa auth-form__input-notification auth-form__input-notification_success"></span>
+                                </div>
+
+                                <div class="input-group input-group-lg auth-form__input-group">
+                                    <span class="input-group-addon" id="name_reg"><i class="fa fa-user"></i></span>
+                                    <input type="text" name="name" class="form-control auth-form__input" placeholder="Имя" aria-describedby="name_reg">
+                                    <span class="fa auth-form__input-notification auth-form__input-notification_alert" data-message=""></span>
+                                    <span class="fa auth-form__input-notification auth-form__input-notification_success"></span>
+                                </div>
+
+                                <div class="input-group input-group-lg auth-form__input-group">
+                                    <span class="input-group-addon" id="group_reg"><i class="fa fa-graduation-cap"></i></span>
+                                    <input type="text" name="group" class="form-control auth-form__input" placeholder="Группа" aria-describedby="group_reg">
+                                    <span class="fa auth-form__input-notification auth-form__input-notification_alert" data-message=""></span>
+                                    <span class="fa auth-form__input-notification auth-form__input-notification_success"></span>
+                                </div>
+
+                                <div class="input-group input-group-lg auth-form__input-group">
+                                    <span class="input-group-addon" id="pass_reg">#</span>
+                                    <input type="password" name="password" class="form-control auth-form__input" placeholder="Пароль*" aria-describedby="pass_reg" pattern="[a-zA-Z0-9@!#$%\._-]{6,}" required>
+                                    <span class="fa auth-form__input-notification auth-form__input-notification_alert" data-message="Пароль должен содержать минимум 6 символов"></span>
+                                    <span class="fa auth-form__input-notification auth-form__input-notification_success"></span>
+                                </div>
+                                <div class="input-group input-group-lg auth-form__input-group">
+                                    <span class="input-group-addon" id="pass_confirm_reg">#</span>
+                                    <input type="password" name="confirm_password" class="form-control auth-form__input" placeholder="Подтверждение пароля*" aria-describedby="pass_confirm_reg" pattern="[a-zA-Z0-9@!#$%\._-]{6,}" required>
+                                    <span class="fa auth-form__input-notification auth-form__input-notification_alert" data-message="Пароли должны совпадать"></span>
+                                    <span class="fa auth-form__input-notification auth-form__input-notification_success"></span>
+                                </div>
+                                <button name="auth" class="btn auth-form__btn color">Зарегистрироваться</button>
+                                <a href="#auth" class="register-toggle">Авторизоваться</a>
+                            </form>
+                        </div><!-- /.register-form__container -->
+                    </div><!-- /.auth__wrapper -->
+                </div><!-- /.auth__container -->
+            </div>
+
+
+
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->

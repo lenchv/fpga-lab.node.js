@@ -1,0 +1,24 @@
+{
+  "port": 80,
+  "mongoose": {
+    "uri": "mongodb://localhost/chat",
+    "options": {
+      "server": {
+        "socketOptions": {
+          "keepAlive": 1
+        }
+      }
+    }
+  },
+  "session": {
+    "secret": "my_unique_key",
+    "key": "sid",
+    "cookie": {
+      "path": "/",
+      "httpOnly": true,
+      "maxAge": null
+    },
+    "resave": true,
+    "saveUninitialized": true
+  }
+}
