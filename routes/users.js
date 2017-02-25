@@ -22,6 +22,7 @@ module.exports = function(app) {
         return next(new HttpError(404, "User not found"));
       }
       res.json(user);
+      
     });
   });
 };
