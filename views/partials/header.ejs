@@ -16,7 +16,7 @@
                         <div class="col-xs-7">
                             <% if (user) { %>
                             <div class="user-info__login"><%= user.get('name') %></div>
-                            <div class="user-info__exit"><a href="#exit" class="user-info__exit-link black-text">Выход</a></div>
+                            <div class="user-info__exit"><a href="#exit" class="user-info__exit-link black-text" onclick="window.Auth().logout()">Выход</a></div>
                             <% } %>
                         </div>
                     </div>

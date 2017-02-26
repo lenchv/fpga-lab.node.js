@@ -22,6 +22,15 @@ var schema = new Schema({
     group: {
         type: String
     },
+    right: {
+        type: String,
+        enum: [
+            'A', // Admin
+            'G', // Guest
+            'S' // Student
+        ],
+        default: 'G'
+    },
     hashedPassword: {
         type: String,
         required: true

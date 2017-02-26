@@ -1,12 +1,12 @@
 (function(window) {
-    if (window.AuthPopup) return;
+    if (window.Auth) return;
 
-    window.AuthPopup = function (popup) {
-        var $popup = $(popup),
-            $body = $popup.find(".modal-body");
+    window.Auth = function () {
         return {
-            init: function () {
-                var $registerForm = $body.find(".register-form__container form"),
+            show: function (popup) {
+                var $popup = $(popup),
+                    $body = $popup.find(".modal-body"),
+                    $registerForm = $body.find(".register-form__container form"),
                     $authForm = $body.find(".auth-form__container form");
                 $popup.modal({
                     backdrop: 'static',
@@ -17,13 +17,13 @@
                 });
                 $registerForm.on(
                     "submit",
-                    this.login($registerForm, "/register")
+                    this.auth($registerForm, "/auth/register")
                 );
-                $authForm.on("submit", this.login($authForm, "/auth"));
+                $authForm.on("submit", this.auth($authForm, "/auth/login"));
                 this.validate($registerForm);
                 this.validate($authForm);
             },
-            login: function (form, url) {
+            auth: function (form, url) {
                 var flag = true;
                 return function (e) {
                     e = e || window.event;
@@ -65,6 +65,13 @@
                         });
                     }
                 }
+            },
+            logout: function () {
+                $.post("/auth/logout", {}, function(data) {
+                    if (data.url) {
+                        location.href = data.url;
+                    }
+                });
             },
             validate: function (form) {
                 form.find("input, select, textarea").each(function(i, item) {

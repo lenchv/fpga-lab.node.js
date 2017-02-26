@@ -17,13 +17,13 @@ module.exports = function (app) {
         }
     };
 
-    app.post("/auth", function(req, res, next) {
+    app.post("/auth/login", function(req, res, next) {
         var email = req.body.email,
             password = req.body.password;
         User.auth(email, password, successLoginCallback(req,res, next));
     });
 
-    app.post("/logout", function(req, res, next) {
+    app.post("/auth/logout", function(req, res, next) {
         req.session.destroy();
         if (req.xhr) {
             res.json({url: "/"});
@@ -32,7 +32,7 @@ module.exports = function (app) {
         }
     });
 
-    app.post("/register", function(req, res, next) {
+    app.post("/auth/register", function(req, res, next) {
         var userData = {
             email: req.body.email,
             name: req.body.name,

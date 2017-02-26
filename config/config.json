@@ -1,7 +1,7 @@
 {
   "port": 80,
   "mongoose": {
-    "uri": "mongodb://localhost/chat",
+    "uri": "mongodb://localhost/fpga_lab",
     "options": {
       "server": {
         "socketOptions": {
