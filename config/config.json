@@ -16,7 +16,7 @@
     "cookie": {
       "path": "/",
       "httpOnly": true,
-      "maxAge": null
+      "maxAge": 1800000
     },
     "resave": true,
     "saveUninitialized": true

@@ -1,7 +1,6 @@
 var User = require("../model/user").User,
     AuthError = require("../model/user").AuthError,
-    HttpError = require("../lib/error").HttpError,
-    async = require("async");
+    HttpError = require("../lib/error").HttpError;
 module.exports = function (app) {
     var successLoginCallback = function(req, res, next) {
         return function(err, user) {

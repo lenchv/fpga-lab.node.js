@@ -77,18 +77,22 @@ app.use(function(err, req, res, next) {
         }
 
     }
-    /*
-    // set locals, only providing error in development
-  res.locals.message = err.message;
-  res.locals.error = req.app.get('env') === 'development' ? err : {};
-
-  // render the error page
-  res.status(err.status || 500);
-  res.render('error');
-  */
 });
 
-http.createServer(app).listen(config.get('port'), function () {
+var server = http.createServer(app).listen(config.get('port'), function () {
     log.info("Express server listening on port " + config.get('port'));
 });
+
+var io = require('socket.io').listen(server);
+io.sockets.on('connection', function(socket) {
+    socket.emit("com port", {data: "some data"});
+    socket.on("put console", function(data) {
+        console.log(data);
+    });
+    socket.on("mousemove", function(data) {
+        console.log(data);
+    });
+});
+app.set('io', io); // Делаем объект сокета глобальным
+
 module.exports = app;
