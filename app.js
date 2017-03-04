@@ -15,7 +15,7 @@ var express = require('express'),
 
 var app = express();
 app.set('port', config.get('port'));
-
+app.set('NODE_ENV', 'development');
 // view engine setup
 app.engine('ejs', require('ejs-locals'));
 app.set('views', path.join(__dirname, 'views'));
@@ -78,7 +78,6 @@ app.use(function(err, req, res, next) {
 
     }
 });
-
 var server = http.createServer(app).listen(config.get('port'), function () {
     log.info("Express server listening on port " + config.get('port'));
 });
@@ -94,5 +93,12 @@ io.sockets.on('connection', function(socket) {
     });
 });
 app.set('io', io); // Делаем объект сокета глобальным
+
+/**
+ * Video stream
+ */
+config.get("video:servers").forEach(function(server) {
+    require('./lib/video-stream')(app.get('io'), server);
+});
 
 module.exports = app;

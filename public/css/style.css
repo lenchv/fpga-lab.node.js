@@ -24,7 +24,7 @@
   margin-top: 20px;
 }
 
-.file-container, .console, .video-container {
+.file-container, .console-container, .video-container {
   height: calc(100vh - 100px);
 
   -webkit-transition: height .25s ease-in-out;
@@ -211,6 +211,7 @@
 }
 /* CONSOLE */
 .console {
+    height: 100%;
     word-break: break-word;
     padding: 10px 15px;
     cursor: text;
@@ -251,4 +252,9 @@
 .console__nl:after {
     content: "";
     display: block;
+}
+/** VIDEO */
+.video-img {
+  width: 100%;
+  height: auto;
 }

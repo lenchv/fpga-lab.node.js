@@ -1,6 +1,6 @@
 /* HIDE-HEADER */
 .hide-header .file-container,
-.hide-header .console,
+.hide-header .console-container,
 .hide-header .video-container {
     height: 100vh;
 }
