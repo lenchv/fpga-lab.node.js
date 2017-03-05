@@ -27,5 +27,10 @@
         "password": "video",
         "port": 8082
       }
+  },
+  "fileManager": {
+    "maxFileSize": 5242880,
+    "userDirectory": "userfiles",
+    "maxSpaceSize": 104857600
   }
 }

@@ -1,18 +1,19 @@
-<div class="file-manager">
-    <ul class="file-manager__container">
-        <li class="file-manager__item">
-            <div class="file-manager__file color-100">
-                <i class="fa fa-file"></i>
-                <span class="file-manager__item-name">file1.bit</span>
-                <span class="file-manager__rename pull-right"><i class="fa fa-pencil"></i></span>
+<div class="file-container">
+    <div class="file-container__top color-600 row">
+        <div class="file-container__top-controls">
+            <div class="col-xs-2">
+                <form action="" method="post" enctype="multipart/form-data">
+                    <label class="file-container__label" for="file_input"><i class="fa fa-plus fa-2x file-container__add-file-btn"></i></label>
+                    <input type="file" name="file" id="file_input" style="display: none">
+                </form>
             </div>
-        </li>
-        <li class="file-manager__item">
-            <div class="file-manager__file color-100">
-                <i class="fa fa-file"></i>
-                <span class="file-manager__item-name">file2.bit</span>
-                <span class="file-manager__rename pull-right"><i class="fa fa-pencil"></i></span>
-            </div>
-        </li>
-    </ul>
+        </div>
+        <div class="file-container__user-space color-400" id="file-space"></div>
+        <div class="file-container__user-space file-container__user-space-text color-100-text">1024/ 2048 Мб</div>
+    </div>
+    <div class="file-container__file row">
+        <div class="file-manager" id="file-manager">
+            <ul class="file-manager__container"></ul>
+        </div>
+    </div>
 </div>

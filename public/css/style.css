@@ -6,7 +6,7 @@
   transition: height .25s ease-in-out;
 
   position: relative;
-  z-index: 1;
+  z-index: 10;
   box-shadow: 0 5px 5px -5px #333;
 }
 .header__content {
@@ -35,6 +35,24 @@
 .file-container__top {
   padding: 5px 0;
   border-bottom: 3px solid #555;
+  height: 40px;
+  position: relative;
+}
+.file-container__user-space {
+    position: absolute;
+    top: 0;
+    height: 100%;
+    text-align: center;
+    z-index: 1;
+}
+.file-container__user-space-text {
+    width: 100%;
+    line-height: 40px;
+}
+.file-container__top-controls {
+    position: relative;
+    z-index: 5;
+    background-color: transparent;
 }
 .file-container__add-file-btn {
   cursor: pointer;
@@ -52,26 +70,91 @@
   margin: 0;
 }
 
+.file-container__file {
+    height: calc(100% - 40px);
+    overflow: auto;
+}
+
+.file-manager {
+    height: 100%;
+}
 
 .file-manager__container {
   list-style: none;
-  padding: 0 0 0 5px;
+  padding: 0 0 0 2px;
   overflow: hidden;
 }
 .file-manager__item {
   padding: 0;
+  position: relative;
 }
 
 .file-manager__file,
 .file-manager__folder {
   border-bottom: 1px solid #333;
+  padding-bottom: 1px;
   cursor: pointer;
   padding-right: 2px;
+  position: relative;
+  z-index: 5;
+  background-color: transparent;
 }
 
 .file-manager__file:hover,
 .file-manager__folder:hover {
-  opacity: .8;
+    border-bottom: 2px solid #333;
+    padding-bottom: 0;
+}
+
+.file-manager__play,
+.file-manager__rename,
+.file-manager__delete {
+    cursor: pointer;
+    border-radius: 50%;
+    width: 19px;
+    height: 19px;
+    display: inline-block;
+    text-align: center;
+}
+.file-manager__play:hover,
+.file-manager__rename:hover,
+.file-manager__delete:hover {
+    background-color: #90CAF9;
+}
+.file-manager__play:hover {
+    color: #4CAF50;
+}
+.file-manager__delete:hover {
+    color: #F44336;
+}
+.file-manager__file-progress {
+    position: absolute;
+    z-index: 1;
+    top: 0; left: 0;
+    width: 0%;
+    height: 21px;
+    -webkit-transition: width .25s;
+    -moz-transition: width .25s;
+    -ms-transition: width .25s;
+    -o-transition: width .25s;
+    transition: width .25s;
+}
+.file-manager__item.success .file-manager__file-progress {
+    background-color: #C8E6C9;
+}
+.file-manager__item.error .file-manager__file-progress {
+    background-color: #FFCDD2;
+}
+.file-manager__item-name {
+    display: inline-block;
+    width: 70%;
+    overflow: hidden;
+    vertical-align: middle;
+    padding-left: 2px;
+}
+.file-manager__item-name-wrapper {
+    display: inline-block;
+    width: 1000px;
 }
 /* AUTH POPUP */
 .modal-open>*:not(.modal) {
@@ -318,4 +401,32 @@
 }
 .video_play .video__pause-ico {
     display: inline-block;
+}
+/** ALERT */
+.alert-popup {
+    position: absolute;
+    width: 300px;
+    font-size: .9em;
+    bottom: 20px;
+    left: 10px;
+    opacity: 0;
+    margin-bottom: 40px;
+    -webkit-transition-property: opacity, margin-bottom, bottom;
+    -moz-transition-property: opacity, margin-bottom, bottom;
+    -ms-transition-property: opacity, margin-bottom, bottom;
+    -o-transition-property: opacity, margin-bottom, bottom;
+    transition-property: opacity, margin-bottom, bottom;
+
+    -webkit-transition-duration: .25s;
+    -moz-transition-duration: .25s;
+    -ms-transition-duration: .25s;
+    -o-transition-duration: .25s;
+    transition-duration: .25s;
+}
+.alert-popup_show:hover {
+    opacity: 1;
+}
+.alert-popup_show {
+    margin-bottom: 0;
+    opacity: .8;
 }

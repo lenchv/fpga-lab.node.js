@@ -1,4 +1,5 @@
 var User = require("../model/user").User,
+    UserSpace = require("../model/userSpace").UserSpace,
     AuthError = require("../model/user").AuthError,
     HttpError = require("../lib/error").HttpError;
 module.exports = function (app) {
@@ -39,7 +40,20 @@ module.exports = function (app) {
             password: req.body.password,
             confirm_password: req.body.confirm_password
         };
-        User.register(userData, successLoginCallback(req,res, next));
+        User.register(userData, function(err, user) {
+            if(err) {
+                if (err instanceof AuthError) {
+                    return next(new HttpError(403, err.message));
+                } else {
+                    return next(err);
+                }
+            }
+            // Создаем файловое пространство пользователя
+            var space = new UserSpace({user: user._id, folder: user.email});
+            space.save(function(err) {
+                successLoginCallback(req,res, next)(err, user);
+            });
+        });
 
 
         /*

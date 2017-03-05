@@ -47,6 +47,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 // users
 require('./routes/users')(app);
 require('./routes/auth')(app);
+require('./routes/files')(app);
 
 app.get('/', function (req, res, next) {
     res.render("index");

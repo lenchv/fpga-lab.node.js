@@ -2,7 +2,9 @@ var crypto = require('crypto'),
     mongoose = require('../lib/mongoose'),
     Schema = mongoose.Schema,
     async = require("async"),
-    util = require("util");
+    util = require("util"),
+    UserSpace = require("./userSpace").UserSpace;
+
 // Схема таблицы пользователей
 var schema = new Schema({
     email: {
@@ -62,6 +64,7 @@ schema.virtual('confirm_password')
         this._confirmPassword = value;
     })
     .get(function() { return this._confirmPassword });
+
 // валидация пароля по пути хешированного пароля
 schema.path('hashedPassword').validate(function(v) {
     if (this._plainPassword || this._confirmPassword) {
@@ -119,8 +122,6 @@ schema.statics.auth = function(email, password, callback) {
         },
         function(user, callback) {
             if (user) {
-                console.log(user.salt);
-
                 if (user.checkPassword(password)) {
                     return callback(null, user);
                 } else {

@@ -17,17 +17,7 @@
 <div class="container-fluid">
     <div class="row change-width">
         <section class="col-xs-3 color-50">
-            <div class="file-container">
-                <div class="file-container__top color-600 row">
-                    <div class="col-xs-2">
-                        <label class="file-container__label" for="file_input"><i class="fa fa-plus fa-2x file-container__add-file-btn"></i></label>
-                        <input type="file" name="file" id="file_input" style="display: none">
-                    </div>
-                </div>
-                <div class="file-container__file row">
-                    <%-partial('../partials/fileManager')%>
-                </div>
-            </div>
+            <%-partial('../partials/fileManager')%>
         </section>
         <section class="col-xs-6">
             <%-partial('../partials/console')%>
