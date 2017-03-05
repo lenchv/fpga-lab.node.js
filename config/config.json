@@ -22,12 +22,10 @@
     "saveUninitialized": true
   },
   "video": {
-    "servers": [
-      {
+    "server": {
         "device": "VirtualBox Webcam - USB2.0 VGA UVC WebCam",
         "password": "video",
         "port": 8082
       }
-    ]
   }
 }

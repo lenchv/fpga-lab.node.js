@@ -97,8 +97,6 @@ app.set('io', io); // Делаем объект сокета глобальны�
 /**
  * Video stream
  */
-config.get("video:servers").forEach(function(server) {
-    require('./lib/video-stream')(app.get('io'), server);
-});
+require('./lib/video-stream')(app.get('io'), config.get("video:server"));
 
 module.exports = app;
