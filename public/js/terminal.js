@@ -49,7 +49,7 @@
                 return _this;
             }, // инициализация
             mouseMoveHandler: function(e) {
-                _this.emit("mousemove", {offsetX: e.offsetX, offsetY: e.offsetY});
+                _this.emit("mousemove", {offsetX: e.offsetX, offsetY: e.offsetY, "ok": "ok"});
             },
             keyPressHandler: function(e) {
                 e = e || winddow.event;

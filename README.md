@@ -51,3 +51,7 @@ Make sure you have Python 2.7 installed. If you do, it may be an issue with the 
 <code>$ set VCTargetsPath=C:\Program Files (x86)\MSBuild\Microsoft.Cpp\v4.0\V140</code><br>
 <code>$ npm config set msvs_version 2015</code><br>
 <code>$ npm i serialport</code><br>
+
+### Заметки на будущее
+
+Сделавть рестарт ффмпег, в случае его падения
