@@ -2,7 +2,9 @@
     <div class="container header__content">
         <div class="row">
             <div class="col-xs-2">
-                <img src="/img/logo.png" alt="fpga-lab" class="header__logo">
+                <a href="/">
+                    <img src="/img/logo.png" alt="fpga-lab" class="header__logo">
+                </a>
             </div>
             <div class="col-xs-8 text-center">
                 <h1>FPGA - лаборатория</h1>
@@ -15,7 +17,15 @@
                         </div>
                         <div class="col-xs-7">
                             <% if (user) { %>
-                            <div class="user-info__login"><%= user.get('name') %></div>
+                            <div class="user-info__login">
+                                <% if (user.get('right') === 'A') {%>
+                                    <a href="/admin/">
+                                <% } %>
+                                    <%= user.get('name') %>
+                                <% if (user.get('right') === 'A') {%>
+                                    </a>
+                                <% } %>
+                            </div>
                             <div class="user-info__exit"><a href="#exit" class="user-info__exit-link black-text" onclick="window.Auth().logout()">Выход</a></div>
                             <% } %>
                         </div>

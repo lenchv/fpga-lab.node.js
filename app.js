@@ -89,6 +89,6 @@ app.set('io', io); // Делаем объект сокета глобальны�
 /**
  * Video stream
  */
-require('./lib/video-stream')(app.get('io'), config.get("video:server"));
+require('./lib/video-stream')(app.get('io'));
 
 module.exports = app;

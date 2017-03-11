@@ -115,7 +115,7 @@ module.exports = function(server) {
         socket.on("mousemove", function(data) {
             console.log({
                 x: mousemove.offsetX - data.offsetX,
-                y: mousemove.offsetY - data.offsetY,
+                y: mousemove.offsetY - data.offsetY
             });
             mousemove = data;
         });
@@ -125,6 +125,17 @@ module.exports = function(server) {
                 delete clients[this.handshake.session.id];
             }
 
+        });
+
+        /**
+         * Заносим клиента в комнату или нет, для передачи видеоданных
+         */
+        socket.on('video-play', function(play) {
+            if (play === true) {
+                socket.join("video");
+            } else {
+                socket.leave("video");
+            }
         });
     });
     return io;
