@@ -24,12 +24,17 @@ module.exports = function (app) {
     });
 
     app.post("/auth/logout", function(req, res, next) {
-        req.session.destroy();
-        if (req.xhr) {
-            res.json({url: "/"});
-        } else {
-            res.redirect('/');
-        }
+        var sid = req.session.id,
+            io = req.app.get('io');
+        req.session.destroy(function(err) {
+            io.sockets._events.sessionreload(sid);
+            if(err) return next(err);
+            if (req.xhr) {
+                res.json({url: "/"});
+            } else {
+                res.redirect('/');
+            }
+        });
     });
 
     app.post("/auth/register", function(req, res, next) {

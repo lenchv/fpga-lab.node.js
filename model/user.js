@@ -3,7 +3,8 @@ var crypto = require('crypto'),
     Schema = mongoose.Schema,
     async = require("async"),
     util = require("util"),
-    UserSpace = require("./userSpace").UserSpace;
+    UserSpace = require("./userSpace").UserSpace,
+    ObjectID = require('mongodb').ObjectID;
 
 // Схема таблицы пользователей
 var schema = new Schema({
@@ -65,8 +66,35 @@ schema.virtual('confirm_password')
     })
     .get(function() { return this._confirmPassword });
 
+schema.virtual('createdFormat').get(function() {
+    var pad = "00",
+        date = "",
+        d = "" + this.created.getDate(),
+        m = "" + (this.created.getMonth() + 1),
+        Y = "" + this.created.getFullYear(),
+        h = "" + this.created.getHours(),
+        i = "" + this.created.getMinutes();
+    date += pad.substring(0, pad.length - d.length) + d;
+    date += "." + pad.substring(0, pad.length - m.length) + m;
+    date += "." + Y;
+
+    date += " " + h + ":" + i;
+    return date;
+});
+// фиктивное поле для отмены проверки пароля
+schema.virtual('checkpassword')
+    .set(function(v) {
+        this._checkpassword = !!v;
+    })
+    .get(function() {
+        return this._checkpassword;
+    });
+
 // валидация пароля по пути хешированного пароля
 schema.path('hashedPassword').validate(function(v) {
+    if (this._checkpassword === false) {
+        return;
+    }
     if (this._plainPassword || this._confirmPassword) {
         if (!/^[a-zA-Z0-9\@\!\#\$\%\.\_\-]{6,}$/.test(this._plainPassword)) {
             this.invalidate('password', 'Пароль должен соответствовать шаблону [a-zA-Z0-9@!#$%\._-]{6,}');
@@ -96,6 +124,7 @@ schema.statics.register = function(userData, callback) {
             if (user) {
                 return callback(new AuthError({errors: {email: "Пользователь с таким email уже существует"}}));
             } else {
+                userData.checkpassword = true;
                 var newUser = new User(userData);
                 var error = newUser.validateSync();
                 if (error) {
@@ -106,7 +135,6 @@ schema.statics.register = function(userData, callback) {
                     return callback(new AuthError(arError));
                 }
             }
-            console.log(newUser.salt);
             newUser.save(callback);
         }
     ], callback);
@@ -130,6 +158,42 @@ schema.statics.auth = function(email, password, callback) {
             } else {
                 return callback(new AuthError({errors: {email: "Пользователь с таким email не зарегистрирован"}}));
             }
+        }
+    ], callback);
+};
+
+// обновление данных пользователя
+schema.statics.updateData = function(userId, data, callback) {
+    var User = this;
+    async.waterfall([
+        function(callback) {
+            try {
+                var id = new ObjectID(userId);
+                return callback(null, id);
+            } catch (e) {
+                return callback(404);
+            }
+        },
+        function(id, callback) {
+            User.findById(id, callback);
+        },
+        function(user, callback) {
+            user.name = data.name;
+            user.group = data.group;
+            user.right = data.right;
+
+            if (data.email) {
+                user.email = data.email;
+            }
+            if (data.password && data.confirm_password) {
+                user._checkpassword = true;
+                user.password = data.password;
+                user.confirm_password = data.confirm_password;
+            } else {
+                user._checkpassword = false;
+            }
+            user.save(callback);
+            //User.findByIdAndUpdate(id, { $set: user}, callback);
         }
     ], callback);
 };

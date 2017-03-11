@@ -19,10 +19,11 @@ module.exports = function(app) {
             next();
         });
     };
+    app.use("/files", checkAuth, haveAccess(["S", "A"]), setUserSpace);
     /**
      * Заугрзука файлов
      */
-    app.post("/files/upload", checkAuth, haveAccess("S"), setUserSpace, function(req, res, next) {
+    app.post("/files/upload", function(req, res, next) {
         // формируем имя файла, и путь к директории пользователя
         var fileName = req.userSpace.fullPath+urldecode(req.get("X-FILE-NAME"));
         // если файл существует, то ошибка
@@ -34,7 +35,6 @@ module.exports = function(app) {
             // определяем размер директории пользователя
             getFolderSize(req.userSpace.fullPath, function(err, size) {
                 if (err) return next(err);
-                console.log([size, length, size+length]);
                 if (length > config.get("fileManager:maxFileSize")) {
                     res.status(403)
                      .json({error: "Файл не должен превышать 5 Мб", success: false});
@@ -52,7 +52,7 @@ module.exports = function(app) {
     /**
      * Получает список файлов
      */
-    app.get("/files", checkAuth, haveAccess("S"), setUserSpace, function(req, res, next) {
+    app.get("/files", function(req, res, next) {
         fs.readdir(req.userSpace.fullPath,function(err, filesName){
             if (err) return next(new HttpError(500, err));
 
@@ -62,7 +62,7 @@ module.exports = function(app) {
     /**
      * Возвращает размер дискового пространства
      */
-    app.get("/files/spacesize", checkAuth, haveAccess("S"), setUserSpace, function(req, res, next) {
+    app.get("/files/spacesize", function(req, res, next) {
         getFolderSize(req.userSpace.fullPath, function(err, size) {
             if (err) return next(new HttpError(500, err));
             res.send({"size": size, "total": req.userSpace.spacesize, "maxfilesize": config.get("fileManager:maxFileSize")});
@@ -71,7 +71,7 @@ module.exports = function(app) {
     /**
      * Удаляет файл
      */
-    app.post("/files/delete/:fileName", checkAuth, haveAccess("S"), setUserSpace, function(req, res, next) {
+    app.post("/files/delete/:fileName", function(req, res, next) {
         fs.unlink(req.userSpace.fullPath + req.params.fileName, function(err) {
             res.json({"success": !err, error: err});
         });
@@ -79,7 +79,7 @@ module.exports = function(app) {
     /**
      * Переименовывает файл
      */
-    app.post("/files/rename/:oldName/:newName", checkAuth, haveAccess("S"), setUserSpace, function(req, res, next) {
+    app.post("/files/rename/:oldName/:newName", function(req, res, next) {
         fs.rename(
             req.userSpace.fullPath + req.params.oldName,
             req.userSpace.fullPath + req.params.newName,

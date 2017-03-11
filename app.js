@@ -3,15 +3,14 @@ var express = require('express'),
     http = require('http'),
     config = require('./config'),
     log = require("./lib/log")(module),
-    mongoose = require("./lib/mongoose"),
     favicon = require('serve-favicon'),
     logger = require('morgan'),
     cookieParser = require('cookie-parser'),
     bodyParser = require('body-parser'),
     expressSession = require('express-session'),
-    MongoStore = require('connect-mongo')(expressSession),
     HttpError = require("./lib/error").HttpError,
-    errorHandler = require("errorhandler");
+    errorHandler = require("errorhandler"),
+    sessionStore = require("./lib/sessionStore");
 
 var app = express();
 app.set('port', config.get('port'));
@@ -37,7 +36,8 @@ app.use(expressSession({
     cookie: config.get("session:cookie"),
     resave: config.get("session:resave"),
     saveUninitialized: config.get("session:saveUninitialized"),
-    store: new MongoStore({mongooseConnection:  mongoose.connection})
+    rolling: config.get("session:rolling"),
+    store: sessionStore
 }));
 
 app.use(require('./middleware/sendHttpError'));
@@ -45,8 +45,8 @@ app.use(require('./middleware/loadUser'));
 
 app.use(express.static(path.join(__dirname, 'public')));
 // users
-require('./routes/users')(app);
 require('./routes/auth')(app);
+require('./routes/admin')(app);
 require('./routes/files')(app);
 
 app.get('/', function (req, res, next) {
@@ -65,10 +65,11 @@ app.use(function(err, req, res, next) {
     if (typeof err == "number") {
         err = new HttpError(err);
     }
-
-    if (err instanceof HttpError) {
+    if (err.status === 401) {
+        res.render("index");
+    } else if (err instanceof HttpError) {
         res.sendHttpError(err)
-    } else {
+    } else{
         if (req.app.get('env') === 'development') {
             errorHandler()(err, req,res, next);
         } else {
@@ -83,18 +84,8 @@ var server = http.createServer(app).listen(config.get('port'), function () {
     log.info("Express server listening on port " + config.get('port'));
 });
 
-var io = require('socket.io').listen(server);
-io.sockets.on('connection', function(socket) {
-    socket.emit("com port", {data: "some data"});
-    socket.on("put console", function(data) {
-        console.log(data);
-    });
-    socket.on("mousemove", function(data) {
-        console.log(data);
-    });
-});
+var io = require("./socket/")(server);
 app.set('io', io); // Делаем объект сокета глобальным
-
 /**
  * Video stream
  */

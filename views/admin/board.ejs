@@ -1,0 +1,24 @@
+<% layout('../layout/admin') -%>
+<button class="btn btn-success item-list__add">Добавить</button>
+<table class="item-list table table-striped">
+    <tr>
+        <th>Ид</th>
+        <th>Название</th>
+        <th>COM-порт</th>
+        <th>Baudrate</th>
+        <th>Камера</th>
+        <th>Секретный ключ для камеры</th>
+        <th>Занятость</th>
+        <th>Пользователь</th>
+        <th>Активность</th>
+        <th></th>
+    </tr>
+    <% boards.forEach(function(oBoard) { %>
+    <tr class="item-list__row" data-id="<%= oBoard._id %>">
+        <%-partial('../partials/admin/board', {oBoard: oBoard})%>
+    </tr>
+    <% }) %>
+</table>
+<% block('title', "Настройка плат") -%>
+<% script("/js/admin/admin-popup.js") -%>
+<% script("/js/admin/board.js") -%>

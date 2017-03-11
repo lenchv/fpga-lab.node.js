@@ -7,50 +7,63 @@
 клавиатура, мышь, кнопки (switches, buttons, rotary)<br>
 
 ###Протокол обмена с платой
-<code>
-server -> board <br>
-0x55 0xAA &lt;len&gt; &lt;addr&gt; &lt;data&gt; <br>
- <br>
-board -> server <br>
-0x55 0xAA &lt;len&gt; &lt;addr&gt; &lt;data&gt;  <br>
- <br>
-&lt;addr&gt; => CODE_DEV <br>
-</code> <br>
+````
+server -> board
+0x55 0xAA <len> <addr> <data>
 
+board -> server
+0x55 0xAA <len> <addr> <data>
+
+<addr> => CODE_DEV
+````
 ##План действий
 
 ###Неделя 1
 <ol>
 <li> Видеотрансляция</li>
 <li> Загрузка файлов на сервер</li>
+</ol>
+
+### Неделя 2
+<ol>
 <li> Работа с ком-портом</li>
   <ul>
-  <li> Формирование пкета</li>
+  <li> Формирование пакета</li>
   <li> Прием / передача пакета</li>
   </ul>
-<li> additional: Запуск exe</li>
+   <li> additional: Запуск exe</li>
 </ol>
 
 ###Заметки
 
 Для rotary использовать код Грея
+<p>
+PS/2 - 4х байтный формат<br>
+<a href="http://www.computer-engineering.org/ps2mouse/">Spec. PS/2</a>
+</p>
 
 ##Установка
 Установить <a href="//nodejs.org">nodejs</a><br>
 Установить mongodb<br>
 Скачать ffmpeg и поместить ffmpeg.exe в директорию /bin/ffmpeg.exe
-<code>git clone git@github.com/lenchv/fpga-lab.git</code><br>
-<code>npm install</code><br>
+
+````
+git clone git@github.com/lenchv/fpga-lab.git
+npm install
+````
 Если возникают проблемы с установкой serialport, то выполнить следующие действия<br>
 <p>
 Install serial port
 Make sure you have Python 2.7 installed. If you do, it may be an issue with the C++ compiler. Install Microsoft Build Tools 2015 (https://www.microsoft.com/en-us/download/details.aspx?id=48159) Then, on the cmd line change the default compiler to VS2015 :
 </p>
 Под администратором<br>
-<code>$ npm install --global windows-build-tools</code><br>
-<code>$ set VCTargetsPath=C:\Program Files (x86)\MSBuild\Microsoft.Cpp\v4.0\V140</code><br>
-<code>$ npm config set msvs_version 2015</code><br>
-<code>$ npm i serialport</code><br>
+
+````
+$ npm install --global windows-build-tools
+$ set VCTargetsPath=C:\Program Files (x86)\MSBuild\Microsoft.Cpp\v4.0\V140
+$ npm config set msvs_version 2015
+$ npm i serialport
+````
 
 ### Заметки на будущее
 

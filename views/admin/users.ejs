@@ -1,0 +1,19 @@
+<% layout('../layout/admin') -%>
+<table class="item-list table table-striped">
+    <tr>
+        <th>Ид</th>
+        <th>Имя</th>
+        <th>E-mail</th>
+        <th>Группа</th>
+        <th>Права доступа</th>
+        <th>Дата создания</th>
+        <th></th>
+    </tr>
+<% users.forEach(function(oUser) { %>
+    <tr class="item-list__row" data-id="<%= oUser._id %>">
+        <%-partial('../partials/admin/users', {oUser: oUser})%>
+    </tr>
+<% }) %>
+</table>
+<% block('title', "Пользователи") -%>
+<% script("/js/admin/users.js") -%>

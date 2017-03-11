@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title><%-blocks.title%></title>
+    <link rel="stylesheet" href="/vendor/bower_components/bootstrap/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/vendor/bower_components/font-awesome/css/font-awesome.min.css">
+    <link rel="stylesheet" href="/css/colors.css">
+    <link rel="stylesheet" href="/css/state.css">
+    <link rel="stylesheet" href="/css/style.css">
+    <%- stylesheets %>
+    <link rel="stylesheet" href="/css/admin.css">
+</head>
+<body>
+<%-partial('../partials/header')%>
+<div class="main-container">
+    <nav class="sidebar">
+        <div class="sidebar__content">
+            <% for(var i in menu) { %>
+            <a href="<%= menu[i]['link'] %>" class="sidebar__item <% if(menu[i]['select']) {%>sidebar__item_active<% } %>"><%= menu[i]['name'] %></a>
+            <% } %>
+        </div>
+        <div class="hide-side__control text-center" data-control="state" data-state="hide-sidebar"><i class="fa fa-angle-left black-text"></i></div>
+    </nav>
+    <div class="content">
+        <h1><%-blocks.title%></h1>
+        <section class="content__section">
+            <%-body%>
+        </section>
+    </div>
+</div>
+<script src="/vendor/bower_components/jquery/dist/jquery.js"></script>
+<script src="/vendor/bower_components/bootstrap/dist/js/bootstrap.min.js"></script>
+<script src="/js/alert-notice.js"></script>
+<script src="/js/auth.js"></script>
+<script src="/js/state.js"></script>
+<%- scripts %>
+<script src="/js/admin.js"></script>
+<%-partial("../partials/admin/popup")%>
+</body>
+</html>

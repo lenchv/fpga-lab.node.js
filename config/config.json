@@ -19,7 +19,8 @@
       "maxAge": 1800000
     },
     "resave": true,
-    "saveUninitialized": true
+    "saveUninitialized": true,
+    "rolling": true
   },
   "video": {
     "server": {
