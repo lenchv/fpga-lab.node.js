@@ -11,6 +11,7 @@
             $progressSize = $(progressSize),
             _this = null,
             MAX_FILE_SIZE = 5*1024*1024,
+            _event = {},
             tplFileItem = "<li class='file-manager__item color-100' data-name='%name%'>" +
                 "<div class='file-manager__file'>" +
                 "<i class='fa fa-file'></i>" +
@@ -179,9 +180,25 @@
                 }
             },
             playHandler: function() {
-                console.log($(this).closest(".file-manager__item").data("name"));
-                // todo play
-            }
+                _this.emit("playHandler", $(this).closest(".file-manager__item").data("name"));
+            },
+            on: function(event, callback) {
+                if (typeof callback !== 'function') {
+                    return _this;
+                }
+                if (!_event.hasOwnProperty(event)) {
+                    _event[event] = [];
+                }
+                _event[event].push(callback);
+                return _this;
+            }, // регистратор событий
+            emit: function(event, data) {
+                if (_event.hasOwnProperty(event)) {
+                    $.each(_event[event], function(key, cb) {
+                        cb(data);
+                    });
+                }
+            } // исполнитель событий
         };
     };
 })(window);

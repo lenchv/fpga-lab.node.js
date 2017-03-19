@@ -39,7 +39,6 @@ app.use(expressSession({
     rolling: config.get("session:rolling"),
     store: sessionStore
 }));
-
 app.use(require('./middleware/sendHttpError'));
 app.use(require('./middleware/loadUser'));
 
@@ -48,6 +47,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 require('./routes/auth')(app);
 require('./routes/admin')(app);
 require('./routes/files')(app);
+require('./routes/board')(app);
 
 app.get('/', function (req, res, next) {
     res.render("index");

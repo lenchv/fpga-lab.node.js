@@ -1,5 +1,5 @@
 /**
- * Вывод ошибок
+ * Вывод сообщений
  */
 (function(window) {
     if(window.AlertNotice)

@@ -1,7 +1,7 @@
 /* HIDE-HEADER */
 .hide-header .file-container,
 .hide-header .console-container,
-.hide-header .video-container,
+.hide-header .right-side-container,
 .hide-header .main-container  {
     height: 100vh;
 }

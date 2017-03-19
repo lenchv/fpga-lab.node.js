@@ -1,3 +1,6 @@
+/**
+ * Модуль для работы с авторизацией
+ */
 (function(window) {
     if (window.Auth) return;
 

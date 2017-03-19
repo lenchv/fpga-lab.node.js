@@ -1,5 +1,6 @@
 var User = require("../model/user").User,
     UserSpace = require("../model/userSpace").UserSpace,
+    Board = require("../model/board").Board,
     AuthError = require("../model/user").AuthError,
     HttpError = require("../lib/error").HttpError;
 module.exports = function (app) {
@@ -25,15 +26,18 @@ module.exports = function (app) {
 
     app.post("/auth/logout", function(req, res, next) {
         var sid = req.session.id,
+            user_id = req.session.user_id,
             io = req.app.get('io');
         req.session.destroy(function(err) {
             io.sockets._events.sessionreload(sid);
             if(err) return next(err);
-            if (req.xhr) {
-                res.json({url: "/"});
-            } else {
-                res.redirect('/');
-            }
+            Board.unset(user_id, function() {
+                if (req.xhr) {
+                    res.json({url: "/"});
+                } else {
+                    res.redirect('/');
+                }
+            });
         });
     });
 

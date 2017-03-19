@@ -4,6 +4,7 @@ $(function() {
         "title": "Плата",
         "fields": [
             { "name": "name", "title": "Название" },
+            { "name": "firmwareport", "title": "Интерфейс связи с платой" },
             { "name": "comport", "title": "COM-порт" },
             { "name": "baudRate", "title": "Baudrate", "type": "select", "options": [
                 300,
@@ -21,9 +22,10 @@ $(function() {
             ]},
             { "name": "webcam", "title": "Камера" },
             { "name": "webcamsecret", "title": "Секретный ключ для камеры" },
-            { "name": "busy", "title": "Занятость", "type": "checkbox", "disabled": true },
+            { "name": "busy", "title": "Занятость", "type": "checkbox" },
             { "name": "user", "title": "Пользователь", "disabled": true },
-            { "name": "active", "title": "Активность", "type": "checkbox" }
+            { "name": "active", "title": "Активность", "type": "checkbox" },
+            { "name": "sessionTime", "title": "Expires", "disabled": true }
         ],
         "callbacks": {
             "successAdd": function(e) {
@@ -38,6 +40,8 @@ $(function() {
                 ).append(
                     '<td class="item-list__cell" data-name="name">'+data.name+'</td>'
                 ).append(
+                    '<td class="item-list__cell" data-name="firmwareport">'+data.firmwareport+'</td>'
+                ).append(
                     '<td class="item-list__cell" data-name="comport">'+data.comport+'</td>'
                 ).append(
                     '<td class="item-list__cell" data-name="baudRate">'+data.baudRate+'</td>'
@@ -51,6 +55,8 @@ $(function() {
                     '<td class="item-list__cell" data-name="user">'+data.user+'</td>'
                 ).append(
                     '<td class="item-list__cell" data-name="active">'+data.active+'</td>'
+                ).append(
+                    '<td class="item-list__cell" data-name="sessionTime">'+data.sessionTime+'</td>'
                 ).append(removeBtn);
                 $(".item-list tbody").append(row);
             },
