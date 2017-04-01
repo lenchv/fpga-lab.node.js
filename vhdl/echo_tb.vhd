@@ -59,6 +59,23 @@ ARCHITECTURE behavior OF echo_tb IS
     	   clk: in std_logic
       );
     END COMPONENT;
+
+  COMPONENT fifo
+    GENERIC (
+      constant FIFO_DEPTH : positive := 65536;
+      constant DATA_WIDTH  : positive := 8
+    );
+    port ( 
+      CLK   : in  STD_LOGIC;
+      RST   : in  STD_LOGIC;
+      WriteEn : in  STD_LOGIC;
+      DataIn  : in  STD_LOGIC_VECTOR (7 downto 0);
+      ReadEn  : in  STD_LOGIC;
+      DataOut : out STD_LOGIC_VECTOR (7 downto 0);
+      Empty : out STD_LOGIC;
+      Full  : out STD_LOGIC
+    );
+    end COMPONENT;
     
 
    --Inputs
@@ -74,6 +91,16 @@ ARCHITECTURE behavior OF echo_tb IS
    signal stb_o : std_logic;
    signal package_length_o : std_logic_vector(15 downto 0);
    signal ready_send_o : std_logic;
+   
+   -- fifo
+    signal fifo_RST : STD_LOGIC;
+    signal fifo_WriteEn : STD_LOGIC;
+    signal fifo_DataIn : STD_LOGIC_VECTOR (7 downto 0);
+    signal fifo_ReadEn : STD_LOGIC;
+    signal fifo_DataOut : STD_LOGIC_VECTOR (7 downto 0);
+    signal fifo_Empty : STD_LOGIC;
+    signal fifo_Full : STD_LOGIC;
+
    -- No clocks detected in port list. Replace <clock> below with 
    -- appropriate port name 
 	signal clk: std_logic;
@@ -98,6 +125,8 @@ ARCHITECTURE behavior OF echo_tb IS
    signal state: state_type := doit;
    signal state_rec: state_type := wait_ack;
 
+   signal state_fifo_write: state_type := doit;
+   signal state_fifo_read: state_type := wait_ack;
 
    type bufer_type is array (0 to 2**15) of std_logic_vector(7 downto 0);
 
@@ -133,20 +162,32 @@ ARCHITECTURE behavior OF echo_tb IS
    signal buff_out: bufer_type := (others => (others => '0'));
 BEGIN
  
-	-- Instantiate the Unit Under Test (UUT)
-   uut: echo PORT MAP (
-          data_i => data_i,
-          stb_i => stb_i,
-          ack_rec_o => ack_rec_o,
-          data_o => data_o,
-          stb_o => stb_o,
-          ack_send_i => ack_send_i,
-          done_i => done_i,
-          package_length_o => package_length_o,
-          ready_send_o => ready_send_o,
-          ready_receive_o => ready_receive_o,
-			 clk => clk
+ uut_fifo: fifo
+    port map ( 
+      CLK   => clk,
+      RST   => fifo_RST,
+      WriteEn => fifo_WriteEn,
+      DataIn  => fifo_DataIn,
+      ReadEn  => fifo_ReadEn,
+      DataOut => fifo_DataOut,
+      Empty => fifo_Empty,
+      Full  => fifo_Full
     );
+
+  -- Instantiate the Unit Under Test (UUT)
+  uut: echo PORT MAP (
+    data_i => data_i,
+    stb_i => stb_i,
+    ack_rec_o => ack_rec_o,
+    data_o => data_o,
+    stb_o => stb_o,
+    ack_send_i => ack_send_i,
+    done_i => done_i,
+    package_length_o => package_length_o,
+    ready_send_o => ready_send_o,
+    ready_receive_o => ready_receive_o,
+    clk => clk
+  );
 
    -- Clock process definitions
    clk_process :process
@@ -156,57 +197,81 @@ BEGIN
 		clk <= '1';
 		wait for clk_period/2;
    end process;
- 
+  
+  proc_get_data: process(clk)
+    variable i: integer := 0;
+  begin
+    if rising_edge(clk) then
+      case state_fifo_write is 
+        when doit => 
+          if fifo_Full /= '1' then
+            fifo_DataIn <= buff(i);
+            fifo_WriteEn <= '1';
+            i := i + 1;
+            state_fifo_write <= wait_ack;
+          end if;
+        when wait_ack => 
+          fifo_WriteEn <= '0';
+          state_fifo_write <= doit;
+      end case;
+      if i > 26 then
+        i := 0;
+      end if;
+    end if;
+  end process;
 
    proc_receive: process(clk)
-   variable i: integer := 0;
-   variable code: std_logic_vector(7 downto 0) := (others => '0');
-   variable len: std_logic_vector(15 downto 0) := (others => '0');
+     variable i: integer := 0;
+     variable code: std_logic_vector(7 downto 0) := (others => '0');
+     variable len: std_logic_vector(15 downto 0) := (others => '0');
+
+     variable byte: std_logic_vector(7 downto 0) := (others => '0');
    begin
-    if rising_edge(clk) then
+    if rising_edge(clk) and fifo_Empty /= '1' then
+      byte := fifo_DataOut;
+      fifo_ReadEn <= '1';  
       case state_parse_send is
         when cAA =>
-          if buff(i) = X"AA" then
+          if byte = X"AA" then
             done_i <= '0';
             state_parse_send <= c55;
           end if;
-          i := i + 1;
         when c55 =>
-          if buff(i) = X"55" then
+          if byte = X"55" then
             state_parse_send <= lengthHigh;
           else
             state_parse_send <= cAA;
           end if;
-          i := i + 1;
         when lengthHigh =>
-          len(15 downto 8) := buff(i);
+          len(15 downto 8) := byte;
           state_parse_send <= lengthLow;
-          i := i + 1;
         when lengthLow =>
-          len(7 downto 0) := buff(i);
+          len(7 downto 0) := byte;
           state_parse_send <= deviceCode;
-          i := i + 1;
         when deviceCode =>
-          code := buff(i);
+          code := byte;
           state_parse_send <= data;
-          i := i + 1;
+          fifo_ReadEn <= '0';  
         when data =>
           if len = X"0000" then
             done_i <= '1';
             stb_i <= '0';    
             state_parse_send <= cAA;
             state <= doit;
+            fifo_ReadEn <= '0';
           else
             case state is
               when doit =>
                 if ack_rec_o = '0' and ready_receive_o = '1' then
-                  data_i <= buff(i);
-                  i := i + 1;
+                  data_i <= byte;
                   stb_i <= '1';
                   len := len - '1';
                   state <= wait_ack;
+                else
+                  fifo_ReadEn <= '0';
                 end if;
               when wait_ack =>
+                fifo_ReadEn <= '0';
                 stb_i <= '0';
                 if ack_rec_o = '1' then
                   state <= doit;
@@ -214,16 +279,12 @@ BEGIN
             end case;
           end if;
       end case;
-
-      if i > 26 then
-        i := 0;
-      end if;
     end if;
    end process;
 
    rec_proc: process(clk)
-   variable i: integer := 0;
-   variable len: std_logic_vector(15 downto 0) := (others => '0');
+     variable i: integer := 0;
+     variable len: std_logic_vector(15 downto 0) := (others => '0');
    begin
     if rising_edge(clk) and ready_send_o = '1' then
       case state_rec is
@@ -270,113 +331,6 @@ BEGIN
       end case;
     end if;
    end process;
---   send_byte: process(clk)
---   variable len: integer := 6;
---   begin
---    if rising_edge(clk) then
---      case state_send is
---        when doit =>
---          if ack_rec_o = '0' then
---            data_i <= buff(ofs);
---            ofs <= ofs + 1;
---            stb_i <= '1';
---            if ofs >= len then
---              len := len - 1;
---              if len = 1 then
---                len := 6;
---              end if;
---              ofs <= 0;
---              state_send <= done;
---              done_i <= '1';
---            else
---              state_send <= wait_ack;
---            end if;
---          end if;
---        when wait_ack =>
---          stb_i <= '0';
---          if ack_rec_o = '1' then
---            state_send <= doit;
---          end if;
---        when done =>
---          stb_i <= '0';
---          ack_send_i <= '1';
---          state_send <= wait_strobe;
---        when wait_strobe =>
---          if stb_o = '1' then
---            done_i <= '0';
---            state_send <= receive;
---            -- длина
---          end if;
---        when receive =>
---          if stb_o = '1' then
---            buff_out(ofs_out) <= data_o;
---            ofs_out <= ofs_out + 1;
---          else
---            stb_i <= '1';
---            ack_send_i <= '0';
---            state_send <= doit;
---          end if;
---      end case;
---    end if;
---   end process;
-	
---  rec_byte: process(clk)
---  begin
---    if rising_edge(clk) then
---      case state_rec is
---        when wait_ack =>
---          ack_send_i <= '1';
---          if stb_o = '1' then
---            state_rec <= doit;
---          end if;
---        when doit =>
---
---        when done =>
---      end case;
---    end if;
---  end process;
-
-   -- Stimulus process
---   stim_proc: process
---   begin		
---      -- hold reset state for 100 ns.
---      wait for 100 ns;	
---
---      wait for clk_period*10;
-		--
---		data_i <= X"AA";
---		stb_i <= '1';
---		wait for clk_period; 
---      if ack_rec_o = '1' then
---			stb_i <= '0';
---		end if;
---		data_i <= X"55";
---		done_i <= '1';
---		stb_i <= '1';
---      wait for clk_period*2;
---		done_i <= '0';
---		stb_i <= '0';
---		ack_send_i <= '1';
-		--
---      wait for clk_period*3;
---		ack_send_i <= '0';
---		stb_i <= '1';
---		data_i <= X"0F";
-		--
---      wait for clk_period*4;
---		data_i <= X"F0";
-		--
---      wait for clk_period*5;
---		data_i <= X"3C";
---		done_i <= '1';
-		--
---		wait for clk_period*6;
---		done_i <= '0';
---		stb_i <= '0';
---		ack_send_i <= '1';
---      wait;
---   end process;
-
 END;
 
 
