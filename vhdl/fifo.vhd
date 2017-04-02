@@ -27,8 +27,8 @@ begin
     type FIFO_Memory is array (0 to FIFO_DEPTH - 1) of STD_LOGIC_VECTOR (DATA_WIDTH - 1 downto 0);
     variable Memory : FIFO_Memory;
     
-    variable Head : natural range 0 to FIFO_DEPTH - 1;
-    variable Tail : natural range 0 to FIFO_DEPTH - 1;
+    variable Head : natural range 0 to FIFO_DEPTH - 1 := 0;
+    variable Tail : natural range 0 to FIFO_DEPTH - 1 := 0;
     
     variable Looped : boolean;
   begin

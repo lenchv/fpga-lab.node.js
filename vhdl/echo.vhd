@@ -1,12 +1,9 @@
 ----------------------------------------------------------------------------------
 -- Echo устройство
 ----------------------------------------------------------------------------------
-library STD;
-use STD.textio.all; 
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 use ieee.numeric_std.all;
-use IEEE.STD_LOGIC_ARITH.ALL;
 use IEEE.STD_LOGIC_UNSIGNED.ALL;
 
 -- Uncomment the following library declaration if using
@@ -42,7 +39,7 @@ end echo;
 
 architecture Behavioral of echo is
   -- тип буффера для пакета данных
-  type bufer_type is array (0 to 2**15) of std_logic_vector(7 downto 0);
+  type bufer_type is array (0 to 2**6) of std_logic_vector(7 downto 0);
   -- тип состояний компонента
   type state_type is (
     ready_rec,

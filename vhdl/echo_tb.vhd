@@ -28,7 +28,6 @@
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 use ieee.numeric_std.all;
-use IEEE.STD_LOGIC_ARITH.ALL;
 use IEEE.STD_LOGIC_UNSIGNED.ALL;
  
 -- Uncomment the following library declaration if using
@@ -100,6 +99,15 @@ ARCHITECTURE behavior OF echo_tb IS
     signal fifo_DataOut : STD_LOGIC_VECTOR (7 downto 0);
     signal fifo_Empty : STD_LOGIC;
     signal fifo_Full : STD_LOGIC;
+
+    -- fifo out
+    signal fifo_out_RST : STD_LOGIC;
+    signal fifo_out_WriteEn : STD_LOGIC;
+    signal fifo_out_DataIn : STD_LOGIC_VECTOR (7 downto 0);
+    signal fifo_out_ReadEn : STD_LOGIC;
+    signal fifo_out_DataOut : STD_LOGIC_VECTOR (7 downto 0);
+    signal fifo_out_Empty : STD_LOGIC;
+    signal fifo_out_Full : STD_LOGIC;
 
    -- No clocks detected in port list. Replace <clock> below with 
    -- appropriate port name 
@@ -174,6 +182,17 @@ BEGIN
       Full  => fifo_Full
     );
 
+  uut_fifo_out: fifo
+    port map ( 
+      CLK   => clk,
+      RST   => fifo_out_RST,
+      WriteEn => fifo_out_WriteEn,
+      DataIn  => fifo_out_DataIn,
+      ReadEn  => fifo_out_ReadEn,
+      DataOut => fifo_out_DataOut,
+      Empty => fifo_out_Empty,
+      Full  => fifo_out_Full
+    );
   -- Instantiate the Unit Under Test (UUT)
   uut: echo PORT MAP (
     data_i => data_i,
@@ -224,7 +243,6 @@ BEGIN
      variable i: integer := 0;
      variable code: std_logic_vector(7 downto 0) := (others => '0');
      variable len: std_logic_vector(15 downto 0) := (others => '0');
-
      variable byte: std_logic_vector(7 downto 0) := (others => '0');
    begin
     if rising_edge(clk) and fifo_Empty /= '1' then
@@ -286,7 +304,7 @@ BEGIN
      variable i: integer := 0;
      variable len: std_logic_vector(15 downto 0) := (others => '0');
    begin
-    if rising_edge(clk) and ready_send_o = '1' then
+    if rising_edge(clk) and ready_send_o = '1' and fifo_out_Full /= '1' then
       case state_rec is
         when wait_ack =>
           ack_send_i <= '1';
@@ -296,36 +314,32 @@ BEGIN
             state_rec <= doit;
           end if;
         when doit =>
+          fifo_out_WriteEn <= '1';
           case state_parse_rec is
             when cAA =>
-              buff_out(i) <= X"AA";
-              i := i + 1;
+              fifo_out_DataIn <= X"AA";
               state_parse_rec <= c55;
             when c55 =>
-              buff_out(i) <= X"55";
-              i := i + 1;
+              fifo_out_DataIn <= X"55";
               state_parse_rec <= lengthHigh;
             when lengthHigh =>
-              buff_out(i) <= len(15 downto 8);
-              i := i + 1;
+              fifo_out_DataIn <= len(15 downto 8);
               state_parse_rec <= lengthLow;
             when lengthLow =>
-              buff_out(i) <= len(7 downto 0);
-              i := i + 1;
+              fifo_out_DataIn <= len(7 downto 0);
               state_parse_rec <= deviceCode;
             when deviceCode =>
               ack_send_i <= '1';
-              buff_out(i) <= X"01";
-              i := i + 1;
+              fifo_out_DataIn <= X"01";
               state_parse_rec <= data;
             when data =>
               if stb_o = '1' then
-                buff_out(i) <= data_o;
-                i := i + 1;
+                fifo_out_DataIn <= data_o;
               else
                 ack_send_i <= '0';
                 state_rec <= wait_ack;
                 state_parse_rec <= cAA;
+                fifo_out_WriteEn <= '0';
               end if;
           end case;
       end case;
