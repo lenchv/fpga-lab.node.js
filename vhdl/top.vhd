@@ -2,6 +2,9 @@ library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.STD_LOGIC_UNSIGNED.ALL;
 use IEEE.NUMERIC_STD.all;
+use std.textio.all;
+use ieee.std_logic_textio.all;
+
 entity top is
   port(
     clk_50mhz: in std_logic;
@@ -27,6 +30,12 @@ architecture Behavioral of top is
     S_LENGTH_LOW,
     S_CODE,
     S_DATA
+  );
+  -- [TYPES] - [Тип состояний для считывания с буфера] --
+  type BUFFER_READ_STATE_TYPE is (
+    S_WAIT_BYTE,
+    S_BYTE_READY,
+    S_READ_BYTE
   );
   -- [ RS232 ] --
   constant system_speed: natural := 11538500;
@@ -79,6 +88,9 @@ architecture Behavioral of top is
   signal device_parser_receive: PARSER_STATE_TYPE := S_AA;
   signal device_send: STATE_TYPE := S_DOIT; 
   signal device_receive: STATE_TYPE := S_WAIT; 
+
+  signal buffer_in_read_state: BUFFER_READ_STATE_TYPE := S_WAIT_BYTE;
+  signal buffer_out_read_state: BUFFER_READ_STATE_TYPE := S_WAIT_BYTE;
   -- [COMPONENTS] --
   -- [COMPONENTS] - [ Clock generator ] --
   component coregen
@@ -199,15 +211,32 @@ begin
 
   -- [ Обработчик передачи байта на COM порт] --
   rs232_send_proc: process(clk_main)
+    variable byte: std_logic_vector(7 downto 0) := (others => '0');
+    variable has_byte: boolean := false;
+
+    variable L: line;
   begin
     if rising_edge(clk_main) then
-      fifo_out_ReadEn <= '0';      
+      case buffer_out_read_state is
+        when S_WAIT_BYTE =>
+          if fifo_out_Empty /= '1' and has_byte = false then
+            fifo_out_ReadEn <= '1';
+            buffer_out_read_state <= S_BYTE_READY;
+          end if;
+        when S_BYTE_READY =>
+          buffer_out_read_state <= S_READ_BYTE;
+          fifo_out_ReadEn <= '0';
+        when S_READ_BYTE =>
+          has_byte := true;
+          byte := fifo_out_DataOut;
+          buffer_out_read_state <= S_WAIT_BYTE;
+      end case;
+
       case rs232_sender_state is
         when S_WAIT => 
-          if rs232_sender_ack = '0' and fifo_out_Empty /= '1' then
-            rs232_sender_dat <= unsigned(fifo_out_DataOut);
-            fifo_out_ReadEn <= '1';
-            
+          if rs232_sender_ack = '0' and has_byte then
+            rs232_sender_dat <= unsigned(byte);
+            has_byte := false;
             rs232_sender_stb <= '1';
             rs232_sender_state <= S_DOIT;
           end if;
@@ -227,17 +256,33 @@ begin
     variable len: std_logic_vector(15 downto 0) := (others => '0');
     variable byte: std_logic_vector(7 downto 0) := (others => '0');
     variable flag: boolean;
+
+    variable has_byte: boolean := false;
   begin
     if rising_edge(clk_main) then
       -- Считываем данные с буфера
-      byte := fifo_DataOut;
-      -- Сразу включаем считывание с буфера, и там где надо выключаем в дальнейшем
-      fifo_ReadEn <= '1';
+      case buffer_in_read_state is
+        -- если есть байт для считывания, то указываем на считывание
+        when S_WAIT_BYTE =>
+          if fifo_Empty /= '1' then
+            fifo_ReadEn <= '1';
+            buffer_in_read_state <= S_BYTE_READY;
+          end if;
+        -- такт считывания
+        when S_BYTE_READY =>
+          buffer_in_read_state <= S_READ_BYTE;
+        -- забираем байт
+        when S_READ_BYTE =>
+          byte := fifo_DataOut; 
+          has_byte := true;
+          buffer_in_read_state <= S_WAIT_BYTE;
+      end case;
       -- Парсим пакет данных  
       case device_parser_send is
         -- Первый байт 0xAA
         when S_AA =>
-          if fifo_Empty /= '1' then
+          if has_byte then
+            has_byte := false;
             if byte = X"AA"  then
               echo_done_i <= '0';
               device_parser_send <= S_55;
@@ -245,7 +290,8 @@ begin
           end if;
         -- Второй байт 0x55
         when S_55 =>
-          if fifo_Empty /= '1' then
+          if has_byte then
+            has_byte := false;
             if byte = X"55" then
               device_parser_send <= S_LENGTH_HIGH;
             else
@@ -254,19 +300,22 @@ begin
           end if;
         -- Старший байт длины пакета
         when S_LENGTH_HIGH =>
-          if fifo_Empty /= '1' then
+          if has_byte then
+            has_byte := false;
             len(15 downto 8) := byte;
             device_parser_send <= S_LENGTH_LOW;
           end if;
         -- Младший байт длины пакета
         when S_LENGTH_LOW =>
-          if fifo_Empty /= '1' then
+          if has_byte then
+            has_byte := false;
             len(7 downto 0) := byte;
             device_parser_send <= S_CODE;
           end if;
         -- Код устройства
         when S_CODE =>
-          if fifo_Empty /= '1' then
+          if has_byte then
+            has_byte := false;
             code := byte;
             device_parser_send <= S_DATA;
             fifo_ReadEn <= '0';
@@ -293,17 +342,21 @@ begin
               -- Передаем данные к устройству
               when S_DOIT =>
                 -- [ Выбираем устройство, которому передаем данные ] --
-                if fifo_Empty /= '1' then
                   case code is
                     -- Эхо устройство
                     when X"01" =>
-                      if echo_ack_rec_o = '0' and echo_ready_receive_o = '1' then
+                      if 
+                        echo_ack_rec_o = '0' 
+                        and 
+                        echo_ready_receive_o = '1' 
+                        and
+                        has_byte
+                      then
+                        has_byte := false;
                         echo_data_i <= byte;
                         echo_stb_i <= '1';
                         len := len - '1';
                         device_send <= S_WAIT;
-                      else
-                        fifo_ReadEn <= '0';
                       end if;
                     -- Если устройство не найдено, то реинициализация    
                     when others =>
@@ -311,7 +364,6 @@ begin
                       device_parser_send <= S_AA;
                       device_send <= S_DOIT;
                   end case;
-                end if;
               -- Ждем успешного принятия данных
               when S_WAIT =>
                 -- [ Выбираем устройство ] --
@@ -391,7 +443,7 @@ begin
                       device_parser_receive <= S_AA;
                       fifo_out_WriteEn <= '0';
                 end case;
-              
+                
                 fifo_out_DataIn <= code;
                 device_parser_receive <= S_DATA;
               when S_DATA =>

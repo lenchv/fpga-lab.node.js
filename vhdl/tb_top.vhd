@@ -77,7 +77,7 @@ ARCHITECTURE behavior OF tb_top IS
       (X"08"),
       (X"01"),
       (X"81"),
-      (X"18"),
+      (X"81"),
       (X"0F"),
       (X"F0"),
       (X"3C"),
@@ -127,7 +127,7 @@ BEGIN
     variable i: integer := 0;
     variable bit_counter: integer := max_counter;
    begin    
-      if rising_edge(clk_50mhz) then
+      if rising_edge(clk_50mhz) and i < 13 then
           case state is
             when s_start =>
               rs232_dce_rxd <= '0';
