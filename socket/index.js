@@ -114,6 +114,9 @@ module.exports = function(server) {
         if (clients[sid]) {
             if (clients[sid].handshake.board) {
                 clients[sid].leave(clients[sid].handshake.board.webcamsecret);
+                if (clients[sid].handshake.SerialPort && clients[sid].handshake.SerialPort.isOpen()) {
+                    clients[sid].handshake.SerialPort.close();
+                }
             }
             clients[sid].handshake.board = board;
         }

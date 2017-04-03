@@ -47,71 +47,104 @@ var firmWare = function(socket, file, callback) {
     ], callback);
 };
 
-var ComPackage = function() {
-    var size = 0,
-        intermediateSize = false,
-        pack = {
+var ComPacket = (function() {
+    var pack = {
+            size: 0,
             code: false,
-            data: null
+            data: Buffer.alloc(0)
         },
         offset = 0,
-        newPack = true;
-    this.put = function(data) {
-        if (intermediateSize >= data.length) {
-            intermediateSize -= data.length;
-            data.copy(pack.data, offset);
-            offset += data.length;
-            return 0;
-        } else {
-            var s = intermediateSize;
-            data.copy(pack.data, offset, 0, intermediateSize);
-            offset += intermediateSize;
-            intermediateSize = 0;
-            return s;
-        }
-    };
-    this.meta = function(data) {
-        var index = data.indexOf(0xAA55);
-        if (index !== -1 && index + 5 <= data.length) {
-            newPack = false;
-            intermediateSize = size = data.readInt16BE(index+1);
-            pack.code = data[index+3];
-            pack.data = Buffer.alloc(size);
-            return data.slice(index+4);
-        }
-        return false;
-    };
-    this.get = function() {
-        return {
-            code: pack.code,
-            data: pack.data.toJSON()
+        states = {
+            START: 0,
+            LENGTH: 1,
+            CODE: 2,
+            DATA: 3
+        },
+        state = states.START,
+        meta = 0x0000,
+        firstByteLength = true,
+        filled = false;
+
+    // инициализация пакета
+    var init = function() {
+        offset = 0;
+        filled = false;
+        pack = {
+            size: 0,
+            code: false,
+            data: Buffer.alloc(0)
         };
     };
-    this.isNew = function() {
-        return newPack;
-    };
-    this.isFilled = function() {
-        if (pack.data) {
-            return intermediateSize === 0;
-        } else {
-            return false;
+    return {
+        // ввода данных
+        push: function(data) {
+            var byte = data[0];
+            switch(state) {
+                case states.START:
+                    meta = meta << 8;
+                    meta += byte;
+                    meta = meta & 0x0FFFF;
+                    if (meta === 0xAA55) {
+                        state = states.LENGTH;
+                        init();
+                    }
+                    break;
+                case states.LENGTH:
+                    pack.size += byte;
+                    if (firstByteLength) {
+                        pack.size = pack.size << 8;
+                        firstByteLength = false;
+                    } else {
+                        pack.data = Buffer.alloc(pack.size);
+                        state = states.CODE;
+                        firstByteLength = true;
+                    }
+                    break;
+                case states.CODE:
+                    pack.code = byte;
+                    state = states.DATA;
+                    break;
+                case states.DATA:
+                    pack.data[offset] = byte;
+                    offset++;
+                    if (offset >= pack.size) {
+                        filled = true;
+                        state = states.START;
+                    }
+                    break;
+            }
+        },
+        // считывает покет с очисткой
+        flush: function() {
+            var p = this.get();
+            init();
+            return p;
+        },
+        // считывает пакет
+        get: function() {
+            return {
+                size: pack.size,
+                code: pack.code,
+                data: pack.data.toJSON()
+            };
+        },
+        // пакет готов
+        isFilled: function() {
+            return filled;
+        },
+        create: function(data) {
+            var bufData = Buffer.from(data.data);
+            var buf = Buffer.alloc(bufData.length + 5); // 0xAA 0x55 <len 2 byte> <code 1 byte> <data>
+            buf[0] = 0xAA;
+            buf[1] = 0x55;
+            buf.writeUInt16BE(bufData.length, 2);
+            buf[4] = data.code;
+            bufData.copy(buf, 5);
+            bufData = null;
+            return buf;
         }
     };
-};
-
-
-var packageFill = function(pack, data) {
-    if (pack.isNew()) {
-        data = pack.meta(data);
-    }
-    if (data) {
-        var ofs = pack.put(data);
-        if (ofs > 0) {
-            return data.slice(ofs);
-        }
-    }
-    return false;
-};
+})();
 
 module.exports = function(socket) {
     socket.use(function(packet, next) {
@@ -128,30 +161,28 @@ module.exports = function(socket) {
             case "firmware":
                 firmWare(socket, data, function(err) {
                     if (!err) {
-                        socket.handshake.SerialPort = new SerialPort(
-                            socket.handshake.board.comport,
-                            { autoOpen: false, baudRate: socket.handshake.board.baudRate }
-                        );
-                        socket.handshake.SerialPort.open(function(err) {
-                            if (err) {
-                                socket.emit("put console", "Failed connect to " + socket.handshake.board.comport);
-                            } else {
-                                var pack = new ComPackage();
-                                socket.handshake.SerialPort.on("data", function(data) {
-                                    console.log(["From serial", data]);
-                                    while(data = packageFill(pack, data)) {
-                                        console.log([1, pack.get()]);
-                                        socket.emit("board", "data", pack.get());
-                                        pack = new ComPackage();
-                                    }
-                                    if (pack.isFilled()) {
-                                        console.log([2, pack.get()]);
-                                        socket.emit("board", "data", pack.get());
-                                        pack = new ComPackage();
-                                    }
-                                });
-                            }
-                        });
+                        if (!socket.handshake.SerialPort) {
+                            socket.handshake.SerialPort = new SerialPort(
+                                socket.handshake.board.comport,
+                                {
+                                    autoOpen: false,
+                                    baudRate: socket.handshake.board.baudRate,
+                                    parser: SerialPort.parsers.byteLength(1)
+                                }
+                            );
+                            socket.handshake.SerialPort.open(function(err) {
+                                if (err) {
+                                    socket.emit("put console", "Failed connect to " + socket.handshake.board.comport);
+                                } else {
+                                    socket.handshake.SerialPort.on("data", function(data) {
+                                        ComPacket.push(data);
+                                        if (ComPacket.isFilled()) {
+                                            socket.emit("board", "data", ComPacket.flush());
+                                        }
+                                    });
+                                }
+                            });
+                        }
                     } else {
                         log.error(err.message);
                     }
@@ -159,16 +190,7 @@ module.exports = function(socket) {
                 break;
             case "serialData":
                 if (socket.handshake.SerialPort && socket.handshake.SerialPort.isOpen()) {
-                    var bufData = Buffer.from(data.data);
-                    var buf = Buffer.alloc(bufData.length + 5); // 0xAA 0x55 <len 2 byte> <code 1 byte> <data> \r \n
-                    buf[0] = 0xAA;
-                    buf[1] = 0x55;
-                    buf.writeUInt16BE(bufData.length, 2);
-                    buf[4] = data.code;
-                    bufData.copy(buf, 5);
-                    //buf[bufData.length+5] = 0x0D;
-                    //buf[bufData.length+6] = 0x0A;
-                    console.log(["Send buffer",buf]);
+                    var buf = ComPacket.create(data);
                     socket.handshake.SerialPort.write(buf);
                 }
                 break;
