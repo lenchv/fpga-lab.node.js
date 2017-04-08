@@ -12,6 +12,7 @@ use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.NUMERIC_STD.ALL;
 use IEEE.MATH_REAL.ALL;
 
+
 entity rs232_receiver is
   generic(system_speed, baudrate: integer);
   port(
@@ -53,7 +54,7 @@ begin
               -- start bit received, wait for a half bit time
               -- to sample bits in the middle of the signal
               state <= wait_half_bit;
-              baudrate_counter <= max_counter / 2 - 1;
+              baudrate_counter <= max_counter / 2 - 1;              
             end if;
           when wait_half_bit =>
             if baudrate_counter = 0 then
