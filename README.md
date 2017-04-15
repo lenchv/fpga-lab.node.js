@@ -3,7 +3,7 @@
 Цель проекта: удаленное управление fpga-стендом.
 </p>
 
-###Эмулируемые устройства
+### Эмулируемые устройства
 клавиатура, мышь, кнопки (switches, buttons, rotary)<br>
 <table>
 <tr>
@@ -32,7 +32,7 @@
 </tr>
 </table>
 
-###Протокол обмена с платой
+### Протокол обмена с платой
 ````
 server -> board
 0x55 0xAA <len> <addr> <data>
@@ -42,9 +42,9 @@ board -> server
 
 <addr> => CODE_DEV
 ````
-##План действий
+## План действий
 
-###Неделя 1
+### Неделя 1
 <ol>
 <li> Видеотрансляция</li>
 <li> Загрузка файлов на сервер</li>
@@ -60,7 +60,7 @@ board -> server
    <li> additional: Запуск exe</li>
 </ol>
 
-###Заметки
+### Заметки
 
 Для rotary использовать код Грея
 <p>
@@ -68,7 +68,7 @@ PS/2 - 4х байтный формат<br>
 <a href="http://www.computer-engineering.org/ps2mouse/">Spec. PS/2</a>
 </p>
 
-##Установка
+## Установка
 Установить <a href="//nodejs.org">nodejs</a><br>
 Установить mongodb<br>
 Скачать ffmpeg и поместить ffmpeg.exe в директорию /bin/ffmpeg.exe
