@@ -46,7 +46,9 @@ var firmWare = function(socket, file, callback) {
         }
     ], callback);
 };
-
+/**
+ * Класс для работы с пакетом данных для передачи в и приема от платы
+ */
 var ComPacket = (function() {
     var pack = {
             size: 0,
@@ -146,7 +148,38 @@ var ComPacket = (function() {
     };
 })();
 
+var connectToComPort = function(socket) {
+    if (!socket.handshake.board)
+        return false;
+    if (socket.handshake.SerialPort)
+        return false;
+
+    socket.handshake.SerialPort = new SerialPort(
+        socket.handshake.board.comport,
+        {
+            autoOpen: false,
+            baudRate: socket.handshake.board.baudRate,
+            parser: SerialPort.parsers.byteLength(1)
+        }
+    );
+    socket.handshake.SerialPort.open(function(err) {
+        if (err) {
+            socket.emit("put console", "Failed connect to " + socket.handshake.board.comport);
+        } else {
+            socket.emit("put console", "Connect to " + socket.handshake.board.comport+" successful");
+            socket.handshake.SerialPort.on("data", function(data) {
+                console.log(data);
+                ComPacket.push(data);
+                if (ComPacket.isFilled()) {
+                    socket.emit("board", "data", ComPacket.flush());
+                }
+            });
+        }
+    });
+};
+
 module.exports = function(socket) {
+    connectToComPort(socket);
     socket.use(function(packet, next) {
         if (!socket.handshake.board) {
             return next(new Error("Плата не выбрана"));
@@ -161,28 +194,7 @@ module.exports = function(socket) {
             case "firmware":
                 firmWare(socket, data, function(err) {
                     if (!err) {
-                        if (!socket.handshake.SerialPort) {
-                            socket.handshake.SerialPort = new SerialPort(
-                                socket.handshake.board.comport,
-                                {
-                                    autoOpen: false,
-                                    baudRate: socket.handshake.board.baudRate,
-                                    parser: SerialPort.parsers.byteLength(1)
-                                }
-                            );
-                            socket.handshake.SerialPort.open(function(err) {
-                                if (err) {
-                                    socket.emit("put console", "Failed connect to " + socket.handshake.board.comport);
-                                } else {
-                                    socket.handshake.SerialPort.on("data", function(data) {
-                                        ComPacket.push(data);
-                                        if (ComPacket.isFilled()) {
-                                            socket.emit("board", "data", ComPacket.flush());
-                                        }
-                                    });
-                                }
-                            });
-                        }
+                        connectToComPort(socket);
                     } else {
                         log.error(err.message);
                     }

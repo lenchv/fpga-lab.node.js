@@ -2,7 +2,8 @@ $(function () {
     var userConsole = window.Terminal("#console").init(), // консоль пользователя
         videoPlayer = window.VideoStream("#video-player").init(),
         fileManager = window.FileManager("#file-manager", "#file_input", "#file-space").init(),
-        board = window.Board.init();
+        boardSelect = window.BoardSelect.init(),
+        board = window.Board.init(".board");
         socket = io.connect('', {
             reconnect: true,
             reconnectionDelay: 1000,
@@ -26,9 +27,17 @@ $(function () {
         switch(type) {
             case "data":
                 userConsole.put(JSON.stringify(data));
+                window.Board.inData(data);
                 break;
         }
     });
+    Board.outData(function(data) {
+        socket.emit("board", "serialData", {
+            data: data.data,
+            code: this.getCode()
+        });
+    });
+
     /*
     userConsole.on("mousemove", function(e) {
         socket.emit("mousemove", e);
