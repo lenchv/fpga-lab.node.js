@@ -1,17 +1,25 @@
 NET "clk_50mhz" PERIOD = 20.0ns HIGH 50%;
-NET "clk_50mhz" LOC = "C9" | IOSTANDARD = LVCMOS33;
+NET "clk_50mhz" LOC = "E12" | IOSTANDARD = LVCMOS33;
 # ==== Discrete LEDs (LED) ====
-# These are shared connections with the FX2 connector
-NET "led<0>" LOC = "F12" | IOSTANDARD = LVTTL | SLEW = SLOW | DRIVE = 8 ;
-NET "led<1>" LOC = "E12" | IOSTANDARD = LVTTL | SLEW = SLOW | DRIVE = 8 ;
-NET "led<2>" LOC = "E11" | IOSTANDARD = LVTTL | SLEW = SLOW | DRIVE = 8 ;
-NET "led<3>" LOC = "F11" | IOSTANDARD = LVTTL | SLEW = SLOW | DRIVE = 8 ;
-NET "led<4>" LOC = "C11" | IOSTANDARD = LVTTL | SLEW = SLOW | DRIVE = 8 ;
-NET "led<5>" LOC = "D11" | IOSTANDARD = LVTTL | SLEW = SLOW | DRIVE = 8 ;
-NET "led<6>" LOC = "E9" | IOSTANDARD = LVTTL | SLEW = SLOW | DRIVE = 8 ;
-NET "led<7>" LOC = "F9" | IOSTANDARD = LVTTL | SLEW = SLOW | DRIVE = 8 ; 
+NET "led<7>" LOC = "W21" | IOSTANDARD = LVTTL | SLEW = QUIETIO | DRIVE = 4 ;
+NET "led<6>" LOC = "Y22" | IOSTANDARD = LVTTL | SLEW = QUIETIO | DRIVE = 4 ;
+NET "led<5>" LOC = "V20" | IOSTANDARD = LVTTL | SLEW = QUIETIO | DRIVE = 4 ;
+NET "led<4>" LOC = "V19" | IOSTANDARD = LVTTL | SLEW = QUIETIO | DRIVE = 4 ;
+NET "led<3>" LOC = "U19" | IOSTANDARD = LVTTL | SLEW = QUIETIO | DRIVE = 4 ;
+NET "led<2>" LOC = "U20" | IOSTANDARD = LVTTL | SLEW = QUIETIO | DRIVE = 4 ;
+NET "led<1>" LOC = "T19" | IOSTANDARD = LVTTL | SLEW = QUIETIO | DRIVE = 4 ;
+NET "led<0>" LOC = "R20" | IOSTANDARD = LVTTL | SLEW = QUIETIO | DRIVE = 4 ;
 # UART
-NET "rs232_dce_rxd" LOC = "R7" | IOSTANDARD = LVTTL ;
-NET "rs232_dce_txd" LOC = "M14" | IOSTANDARD = LVTTL | DRIVE = 8 | SLEW = SLOW ;
-# ROTARY PUSH
-NET "reset" LOC = "V16" | IOSTANDARD = LVTTL | PULLDOWN;
+NET "rs232_dce_rxd" LOC = "E16" | IOSTANDARD = LVTTL ;
+NET "rs232_dce_txd" LOC = "F15" | IOSTANDARD = LVTTL | DRIVE = 4 | SLEW = SLOW ;
+# Switches
+NET "buttons<0>" LOC = "V8" | IOSTANDARD = LVTTL | PULLUP ;
+NET "buttons<1>" LOC = "U10"| IOSTANDARD = LVTTL | PULLUP ;
+NET "buttons<2>" LOC = "U8" | IOSTANDARD = LVTTL | PULLUP ;
+NET "buttons<3>" LOC = "T9" | IOSTANDARD = LVTTL | PULLUP ;
+# Push buttons
+NET "buttons<4>" LOC = "T16" | IOSTANDARD = LVTTL | PULLDOWN ;
+NET "buttons<5>" LOC = "T14" | IOSTANDARD = LVTTL | PULLDOWN ;
+NET "buttons<6>" LOC = "T15" | IOSTANDARD = LVTTL | PULLDOWN ;
+NET "buttons<7>" LOC = "U15" | IOSTANDARD = LVTTL | PULLDOWN ;
+

@@ -42,19 +42,19 @@ ARCHITECTURE behavior OF tb_top IS
     COMPONENT top
     PORT(
          clk_50mhz : IN  std_logic;
-         reset : IN  std_logic;
          rs232_dce_txd : OUT  std_logic;
          rs232_dce_rxd : IN  std_logic;
-         led : OUT  unsigned(7 downto 0)
+         led : OUT  unsigned(7 downto 0);
+         buttons : IN  unsigned(7 downto 0)
         );
     END COMPONENT;
     
 	
    --Inputs
    signal clk_50mhz : std_logic := '0';
-   signal reset : std_logic := '0';
    signal rs232_dce_rxd : std_logic := '0';
-
+   signal buttons : unsigned(7 downto 0) := (others => '0');
+   signal reset: std_logic := '1';
  	--Outputs
    signal rs232_dce_txd : std_logic;
    signal led : unsigned(7 downto 0);
@@ -71,32 +71,34 @@ ARCHITECTURE behavior OF tb_top IS
   type bufer_type is array (0 to 2**15) of std_logic_vector(7 downto 0);
 
    signal buff: bufer_type := (
+--      (X"AA"),
+--      (X"55"),
+--      (X"00"),
+--      (X"08"),
+--      (X"01"),
+--      (X"81"),
+--      (X"81"),
+--      (X"0F"),
+--      (X"F0"),
+--      (X"3C"),
+--      (X"C3"),
+--      (X"7E"),
+--      (X"E7"),
+--      (X"01"),
+--      (X"02"),
+--      (X"03"),
       (X"AA"),
       (X"55"),
       (X"00"),
-      (X"08"),
       (X"01"),
-      (X"81"),
-      (X"81"),
-      (X"0F"),
-      (X"F0"),
-      (X"3C"),
-      (X"C3"),
-      (X"7E"),
-      (X"E7"),
-      (X"01"),
-      (X"02"),
       (X"03"),
+      (X"AA"),
       (X"AA"),
       (X"55"),
       (X"00"),
-      (X"05"),
-      (X"02"),
       (X"01"),
-      (X"02"),
       (X"03"),
-      (X"04"),
-      (X"05"),
+      (X"55"),
     others => (others => '0')
     );
     signal buff_out: bufer_type := (others => (others => '0'));
@@ -105,10 +107,10 @@ BEGIN
 	-- Instantiate the Unit Under Test (UUT)
    uut: top PORT MAP (
           clk_50mhz => clk_50mhz,
-          reset => reset,
           rs232_dce_txd => rs232_dce_txd,
           rs232_dce_rxd => rs232_dce_rxd,
-          led => led
+          led => led,
+          buttons => buttons
         );
 
    -- Clock process definitions
@@ -127,39 +129,49 @@ BEGIN
     variable i: integer := 0;
     variable bit_counter: integer := max_counter;
    begin    
-      if rising_edge(clk_50mhz) and i < 13 then
-          case state is
-            when s_start =>
-              rs232_dce_rxd <= '0';
-              state <= s_data;
-              bit_counter := max_counter-1 + ((max_counter-1) / 2) - 1;
-              report "bitcounter = "&integer'image(bit_counter);
-            when s_data =>
-              if bit_counter = 0 then
-                bit_counter := max_counter - 2;
-                if bit_i = 8 then
-                  report "next byte " severity note;
-                  bit_i := 0;
-                  i := i + 1;
-                  state <= s_stop;
-                  rs232_dce_rxd <= '1';
-                else
-                  rs232_dce_rxd <= buff(i)(bit_i);
-                  bit_i := bit_i + 1;
-                end if;
-              else
-                bit_counter := bit_counter - 1;
-              end if;
-            when s_stop =>
-              if bit_counter = 0 then
-                state <= s_start;
-              else
-                bit_counter := bit_counter - 1;
-              end if;
-          end case;
+      if rising_edge(clk_50mhz) then
+        if i < 12 then
+          i := i + 1;
+
+--          case state is
+--            when s_start =>
+--              rs232_dce_rxd <= '0';
+--              state <= s_data;
+--              bit_counter := max_counter-1 + ((max_counter-1) / 2) - 1;
+--              report "bitcounter = "&integer'image(bit_counter);
+--            when s_data =>
+--              if bit_counter = 0 then
+--                bit_counter := max_counter - 2;
+--                if bit_i = 8 then
+--                  report "next byte " severity note;
+--                  bit_i := 0;
+--                  i := i + 1;
+--                  state <= s_stop;
+--                  rs232_dce_rxd <= '1';
+--                else
+--                  rs232_dce_rxd <= buff(i)(bit_i);
+--                  bit_i := bit_i + 1;
+--                end if;
+--              else
+--                bit_counter := bit_counter - 1;
+--              end if;
+--            when s_stop =>
+--              if bit_counter = 0 then
+--                state <= s_start;
+--              else
+--                bit_counter := bit_counter - 1;
+--              end if;
+--          end case;
+        end if;
+        if i = 12 then
+          buttons <= X"01";
+          i := i + 1;  
+        end if;
+        if i > 12 and i < 20 then
+          buttons <= buttons(6 downto 0)&'1';
+          i := i + 1; 
+          report "ok" severity note;
+        end if;
       end if;     
    end process;
-
-	led <= X"00";
-	reset <= '0';
 END;
