@@ -3,10 +3,36 @@
 Цель проекта: удаленное управление fpga-стендом.
 </p>
 
-###Эмулируемые устройства
+### Эмулируемые устройства
 клавиатура, мышь, кнопки (switches, buttons, rotary)<br>
+<table>
+<tr>
+<th>Устройство</th>
+<th>Код</th> 
+</tr>
+<tr>
+<td>Эхо</td>
+<td>01</td> 
+</tr>
+<tr>
+<td>Светодиоды</td>
+<td>02</td> 
+</tr>
+<tr>
+<td>Кнопки</td>
+<td>03</td> 
+</tr>
+<tr>
+<td>Крутилка (Rotary, knob)</td>
+<td>04</td> 
+</tr>
+<tr>
+<td>Вывод в терминал</td>
+<td>05</td> 
+</tr>
+</table>
 
-###Протокол обмена с платой
+### Протокол обмена с платой
 ````
 server -> board
 0x55 0xAA <len> <addr> <data>
@@ -16,9 +42,9 @@ board -> server
 
 <addr> => CODE_DEV
 ````
-##План действий
+## План действий
 
-###Неделя 1
+### Неделя 1
 <ol>
 <li> Видеотрансляция</li>
 <li> Загрузка файлов на сервер</li>
@@ -34,7 +60,7 @@ board -> server
    <li> additional: Запуск exe</li>
 </ol>
 
-###Заметки
+### Заметки
 
 Для rotary использовать код Грея
 <p>
@@ -42,7 +68,7 @@ PS/2 - 4х байтный формат<br>
 <a href="http://www.computer-engineering.org/ps2mouse/">Spec. PS/2</a>
 </p>
 
-##Установка
+## Установка
 Установить <a href="//nodejs.org">nodejs</a><br>
 Установить mongodb<br>
 Скачать ffmpeg и поместить ffmpeg.exe в директорию /bin/ffmpeg.exe
@@ -65,6 +91,16 @@ $ npm config set msvs_version 2015
 $ npm i serialport
 ````
 
-### Заметки на будущее
+### Литература
 
-Сделавть рестарт ффмпег, в случае его падения
+Инфа по PS/2
+<ul>
+<li><a href="http://www.computer-engineering.org/ps2protocol/">протокол</a></li>
+<li><a href="http://www.computer-engineering.org/ps2keyboard/">Клавиатура</a></li>
+<li><a href="http://www.computer-engineering.org/ps2mouse/">Мышь</a></li>
+<li><a href="http://www.computer-engineering.org/ps2keyboard/scancodes2.html">Скан-коды</a></li>
+<li><a href="https://www.gta.ufrj.br/ensino/EEL480/spartan3/ug334.pdf">Spartan 3AN user guide</a></li>
+<li><a href="http://www.xess.com/static/media/projects/ps2_ctrl.pdf">Simple PS/2</a></li>
+<li><a href="https://eewiki.net/pages/viewpage.action?pageId=28278929">Keyboard VHDL example</a></li>
+<li><a href="https://www.youtube.com/watch?v=A1YSbLnm4_o">Mouse VHDL example (video)</a></li>
+</ul>

@@ -26,7 +26,11 @@ $(function () {
     socket.on("board", function(type, data) {
         switch(type) {
             case "data":
-                userConsole.put(JSON.stringify(data));
+                if (data.code == 5) {
+                    userConsole.put(data.data.data);
+                } else {
+                    userConsole.put(JSON.stringify(data));
+                }
                 window.Board.inData(data);
                 break;
         }

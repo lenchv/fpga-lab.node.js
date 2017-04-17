@@ -147,7 +147,9 @@ var ComPacket = (function() {
         }
     };
 })();
-
+/**
+ * Подключает сокет к ком порту
+ */
 var connectToComPort = function(socket) {
     if (!socket.handshake.board)
         return false;
@@ -175,6 +177,10 @@ var connectToComPort = function(socket) {
                 }
             });
         }
+    }).on('disconnect', function() {
+        socket.emit("put console", socket.handshake.board.comport + " disconnected");
+        socket.handshake.SerialPort.close();
+        socket.handshake.SerialPort = null;
     });
 };
 
