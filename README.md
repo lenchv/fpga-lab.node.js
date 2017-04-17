@@ -91,6 +91,16 @@ $ npm config set msvs_version 2015
 $ npm i serialport
 ````
 
-### Заметки на будущее
+### Литература
 
-Сделавть рестарт ффмпег, в случае его падения
+Инфа по PS/2
+<ul>
+<li><a href="http://www.computer-engineering.org/ps2protocol/">протокол</a></li>
+<li><a href="http://www.computer-engineering.org/ps2keyboard/">Клавиатура</a></li>
+<li><a href="http://www.computer-engineering.org/ps2mouse/">Мышь</a></li>
+<li><a href="http://www.computer-engineering.org/ps2keyboard/scancodes2.html">Скан-коды</a></li>
+<li><a href="https://www.gta.ufrj.br/ensino/EEL480/spartan3/ug334.pdf">Spartan 3AN user guide</a></li>
+<li><a href="http://www.xess.com/static/media/projects/ps2_ctrl.pdf">Simple PS/2</a></li>
+<li><a href="https://eewiki.net/pages/viewpage.action?pageId=28278929">Keyboard VHDL example</a></li>
+<li><a href="https://www.youtube.com/watch?v=A1YSbLnm4_o">Mouse VHDL example (video)</a></li>
+</ul>

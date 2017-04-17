@@ -194,6 +194,8 @@
         /** Класс для работы с крутилкой */
         var Rotary = function(selector) {
             Controller.apply(this, arguments);
+            var counter = 2;
+
             this.code = 4;
             this.controller = $(selector);
             this.isDown = false;
@@ -202,8 +204,9 @@
                 y: this.controller.offset().top+this.controller.height()/2
             };
             this.isDblClick = Rotary.StateClick.NO_CLICK;
-            this.currentAngle = Rotary.AngleState.ANGLE_0;
-            this.prevAngle = Rotary.AngleState.ANGLE_0;
+            this.angle = 0;
+            this.prevAngle = 0;
+            this.dir = Rotary.Dir.RIGHT;
             // Подключаем обработчики в контексте объекта
             $(document).on("mousemove", (function(context) {
                 return function() {
@@ -220,6 +223,55 @@
                     context.mouseupHandler.apply(context, arguments);
                 };
             })(this));
+
+            // Колесико
+
+            var onWheel = (function(context) {
+                return function(e) {
+                    e = e.originalEvent || window.event;
+                    var delta = e.deltaY || e.detail || e.wheelDelta;
+                    if (delta > 0) {
+                        context.angle -= 15;
+                    } else {
+                        context.angle += 15;
+                    }
+                    prev = delta;
+                    context.rotate(context.angle);
+                    e.preventDefault ? e.preventDefault() : (e.returnValue = false);
+                }
+            })(this);
+            if ('onwheel' in document) {
+                // IE9+, FF17+, Ch31+
+                this.controller.on("wheel", onWheel);
+            } else if ('onmousewheel' in document) {
+                // устаревший вариант события
+                this.controller.on("mousewheel", onWheel);
+            } else {
+                // Firefox < 17
+                this.controller.on("MozMousePixelScroll", onWheel);
+            }
+            this.doCount = function() {
+                if (this.dir === Rotary.Dir.RIGHT) {
+                    counter = counter > 2 ? 0 : counter + 1;
+                } else {
+                    counter = counter < 1 ? 3 : counter - 1;
+                }
+                return this.getCount();
+            };
+            this.getCount = function() {
+                return this.grayEncode(counter);
+            };
+            this.grayEncode = function(number) { return counter ^ (counter >> 1); };
+            this.grayDecode = function(gray) {
+                var bin;
+                for (bin = 0; gray; gray >>= 1) {
+                    bin ^= gray;
+                }
+                return bin;
+            };
+            this.getData = function() {
+                return this.getCount() | (this.isDblClick === Rotary.StateClick.DOUBLE_CLICK ? 4 : 0);
+            };
         };
         Rotary.prototype = Object.create(Controller.prototype);
         Rotary.prototype.constructor = Rotary;
@@ -229,13 +281,6 @@
             FIRST_CLICK: 1,
             DOUBLE_CLICK: 2
         };
-        // Состояния для поворотов
-        Rotary.AngleState = {
-            ANGLE_0: 0,
-            ANGLE_90: 1,
-            ANGLE_180: 2,
-            ANGLE_270: 3
-        };
         // Состояние направлений
         Rotary.Dir = {
             LEFT: 0,
@@ -243,14 +288,11 @@
         };
         Rotary.prototype.mousemoveHandler = function(e) {
             if(this.isDown) {
-                var angle = Math.atan2(
+                this.angle = Math.atan2(
                         e.pageX - this.center.x,
                         -(e.pageY - this.center.y)
                     )*(180/Math.PI);
-                this.rotate(angle);
-                this.controller.css({"-webkit-transform": "rotate("+parseInt(angle)+"deg)"});
-                this.controller.css({"-moz-transform": "rotate("+parseInt(angle)+"deg)"});
-                this.controller.css({"transform": "rotate("+parseInt(angle)+"deg)"});
+                this.rotate(this.angle < 0 ? 360 + this.angle : this.angle);
             }
         };
         Rotary.prototype.mousedownHandler = function(e) {
@@ -264,14 +306,14 @@
                         if (_this.isDblClick === Rotary.StateClick.FIRST_CLICK) {
                             _this.isDblClick = Rotary.StateClick.NO_CLICK;
                         } else {
-                            _this.isDown = false;
+                            //_this.isDown = false;
                         }
                     }, 250);
                     break;
                 case Rotary.StateClick.FIRST_CLICK:
                     _this.isDblClick = Rotary.StateClick.DOUBLE_CLICK;
                     _this.controller.addClass("rotary_push");
-                    _this.emit('change', {data: [4], target: this.controller});
+                    _this.emit('change', {data: [_this.getData()], target: _this.controller});
                     break;
             }
         };
@@ -280,47 +322,46 @@
             if (this.isDblClick === Rotary.StateClick.DOUBLE_CLICK) {
                 this.isDblClick = Rotary.StateClick.NO_CLICK;
                 this.controller.removeClass("rotary_push");
+                this.emit('change', {data: [this.getData()], target: this.controller});
             }
         };
-        Rotary.prototype.direction = function() {
+        Rotary.prototype.direction = function(angle) {
+            angle = parseInt(angle);
             if (
-                this.prevAngle === Rotary.AngleState.ANGLE_270
+                this.prevAngle > 350
                 &&
-                this.currentAngle === Rotary.AngleState.ANGLE_0
+                angle < 10
             ) {
-                return Rotary.Dir.RIGHT;
-            }
-            if (
-                this.prevAngle === Rotary.AngleState.ANGLE_0
+                this.dir = Rotary.Dir.RIGHT;
+                this.prevAngle = angle;
+                return true;
+            } else if (
+                this.prevAngle < 10
                 &&
-                this.currentAngle === Rotary.AngleState.ANGLE_270
+                angle > 350
             ) {
-                return Rotary.Dir.LEFT;
+                this.dir = Rotary.Dir.LEFT;
+                this.prevAngle = angle;
+                return true;
+            } else if (angle > this.prevAngle + 5) {
+                this.dir = Rotary.Dir.RIGHT;
+                this.prevAngle = angle;
+                return true;
+            } else if (angle < this.prevAngle - 5) {
+                this.dir = Rotary.Dir.LEFT;
+                this.prevAngle = angle;
+                return true;
             }
-            if (this.prevAngle > this.currentAngle) {
-                return Rotary.Dir.LEFT;
-            } else {
-                return Rotary.Dir.RIGHT;
-            }
+            return false;
         };
         Rotary.prototype.rotate = function(angle) {
-            if (angle > 0 && angle < 90) {
-                this.currentAngle = Rotary.AngleState.ANGLE_0;
-            } else if (angle > 90 && angle < 180) {
-                this.currentAngle = Rotary.AngleState.ANGLE_90;
-            } else if (angle < -90 && angle > -180) {
-                this.currentAngle = Rotary.AngleState.ANGLE_180;
-            } else if (angle < 0 && angle > -90) {
-                this.currentAngle = Rotary.AngleState.ANGLE_270;
-            }
+            if (this.direction(angle)) {
+                this.doCount();
+                this.emit('change', {data: [this.getData()], target: this.controller});
 
-            if (this.prevAngle !== this.currentAngle) {
-                if (this.direction() === Rotary.Dir.LEFT) {
-                    this.emit('change', {data: [2], target: this.controller});
-                } else {
-                    this.emit('change', {data: [1], target: this.controller});
-                }
-                this.prevAngle = this.currentAngle;
+                this.controller.css({"-webkit-transform": "rotate("+parseInt(angle)+"deg)"});
+                this.controller.css({"-moz-transform": "rotate("+parseInt(angle)+"deg)"});
+                this.controller.css({"transform": "rotate("+parseInt(angle)+"deg)"});
             }
         };
         Rotary.prototype.change = function(callback) {
