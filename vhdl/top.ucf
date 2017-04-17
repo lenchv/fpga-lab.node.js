@@ -22,4 +22,7 @@ NET "buttons<4>" LOC = "T16" | IOSTANDARD = LVTTL | PULLDOWN ;
 NET "buttons<5>" LOC = "T14" | IOSTANDARD = LVTTL | PULLDOWN ;
 NET "buttons<6>" LOC = "T15" | IOSTANDARD = LVTTL | PULLDOWN ;
 NET "buttons<7>" LOC = "U15" | IOSTANDARD = LVTTL | PULLDOWN ;
-
+# Rotary
+NET "rot_a" LOC = "T13" | IOSTANDARD = LVTTL | PULLUP ;
+NET "rot_b" LOC = "R14" | IOSTANDARD = LVTTL | PULLUP ;
+NET "rot_center" LOC = "R13" | IOSTANDARD = LVTTL | PULLDOWN ;

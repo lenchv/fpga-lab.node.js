@@ -20,23 +20,20 @@ end web_led;
 
 architecture LedArch of web_led is
 begin
-proc: process(clk)
-  variable prev_data: std_logic_vector(7 downto 0) := (others => '0');
-begin
-  if rising_edge(clk) then
+  proc: process(clk, ack_i, rst_i)
+    variable prev_data: integer := 0;
+  begin
     if ack_i = '1' then
       strobe_o <= '0';
-    end if;
-    if rst_i = '1' then
+    elsif rst_i = '1' then
       data_o <= X"00";
       strobe_o <= '0';
-    else
-      if prev_data /= data_i then
-        prev_data := data_i;
+    elsif rising_edge(clk) then
+      if prev_data /= to_integer(unsigned(data_i)) then
+        prev_data := to_integer(unsigned(data_i));
         strobe_o <= '1';
         data_o <= data_i;
       end if;
     end if;
-  end if;
-end process;  
+  end process;  
 end LedArch;

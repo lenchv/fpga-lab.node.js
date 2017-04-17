@@ -11,7 +11,11 @@ entity top is
     rs232_dce_txd: out std_logic;
     rs232_dce_rxd: in std_logic;
     led: out std_logic_vector(7 downto 0);
-    buttons: in std_logic_vector(7 downto 0)
+    buttons: in std_logic_vector(7 downto 0);
+
+    rot_a: in std_logic;
+    rot_b: in std_logic;
+    rot_center: in std_logic
   );
 end top;
 
@@ -88,8 +92,23 @@ architecture Behavioral of top is
   signal led_ack: std_logic := '0';
   signal led_strobe: std_logic := '0';
   signal led_rst: std_logic := '0';
-  -- [ WEB_BUTTON ]
+  -- [ WEB_BUTTON ] -- [ реализован только одним сигналом, который связывает переданный байт от сервера с пользовательским кодом ]
   signal button_data_o: std_logic_vector(7 downto 0) := (others => '0');
+  signal button_rs232_data_i: std_logic_vector(7 downto 0) := (others => '0');
+  -- [ WEB_ROTARY ] -- [] -- 
+  signal web_rotary_rot_a_i: std_logic := '0';
+  signal web_rotary_rot_b_i: std_logic := '0';
+  signal web_rotary_rot_center_i: std_logic := '0';
+  signal web_rotary_rot_a_o: std_logic := '0';
+  signal web_rotary_rot_b_o: std_logic := '0';
+  signal web_rotary_rot_center_o: std_logic := '0';
+  -- [ WEB_OUTPUT ] -- [  ] --
+  signal web_output_write_i: std_logic := '0';
+  signal web_output_data_i: std_logic_vector(7 downto 0) := (others => '0');
+  signal web_output_read_i: std_logic := '0';
+  signal web_output_data_o: std_logic_vector(7 downto 0) := (others => '0');
+  signal web_output_empty_o: std_logic := '0';
+  signal web_output_full_o: std_logic := '0';
   -- [ /USER DEVICES ] --
 
   -- [STATES] --
@@ -125,7 +144,7 @@ begin
     CLK0_OUT => open,
     LOCKED_OUT => PLL_LOCKED_OUT
   );
-  --clk_main <= clk_50mhz;
+--  clk_main <= clk_50mhz;
   -- [ RS232 ] - [sender] - [ Отправляет байт на com порт ] --
   inst_rs232_sender: entity work.rs232_sender
     generic map(system_speed, baudrate)
@@ -203,24 +222,53 @@ begin
     );
   led <= led_o; -- физические светодиоды
   -- [ WEB_BUTTON ] - [0x03] --
---  web_button: entity work.web_button
---    port map (
---      data_o => button_data_o,
---      rs232_data_i => button_rs232_data_i,
---      physical_data_i => buttons,
---      rst_i => reset,
---      clk => clk_main
---    );
+  web_button: entity work.web_button
+    port map (
+      data_o => button_data_o,
+      rs232_data_i => button_rs232_data_i,
+      physical_data_i => buttons,
+      rst_i => reset,
+      clk => clk_main
+    );
+  -- [ WEB_ROTARY ] -- [0x04] --
+  inst_web_rotary: entity work.web_rotary
+    port map (
+      rot_a_o => web_rotary_rot_a_o,
+      rot_b_o => web_rotary_rot_b_o,
+      rot_center_o => web_rotary_rot_center_o,
+      rot_a_i => rot_a,
+      rot_b_i => rot_b,
+      rot_center_i => rot_center,
+      rot_a_rs232_i => web_rotary_rot_a_i,
+      rot_b_rs232_i => web_rotary_rot_b_i,
+      rot_center_rs232_i => web_rotary_rot_center_i,
+      rst_i => reset,
+      clk => clk_main
+    );
+  -- [ WEB_OUTPUT ] - [0x05] -- [ Вывод данных в консоль браузера ] --
+  inst_web_output: entity work.fifo
+    generic map (2, 8)
+    port map ( 
+      CLK => clk_main,
+      RST => reset,
+
+      WriteEn => web_output_write_i,
+      DataIn => web_output_data_i,
+      ReadEn => web_output_read_i,
+      DataOut => web_output_data_o,
+      Empty => web_output_empty_o,
+      Full  => web_output_full_o
+    );
   -- [PROCESS STATEMENTS] --
   -- [ RESET ] - [ Выключает инициализацию устройств ]
-  init_proc: process(clk_main)
-  begin
-    if rising_edge(clk_main) then
-      if reset = '1' then
-        reset <= '0';
-      end if;
-    end if;
-  end process;
+--  init_proc: process(clk_main)
+--  begin
+--    if rising_edge(clk_main) then
+--      if reset = '1' then
+--        reset <= '0';
+--      end if;
+--    end if;
+--  end process;
   -- [ Обработчик принятия байта с COM порта] --
   rs232_receive_proc: process(clk_main)
   begin
@@ -274,8 +322,8 @@ begin
       case rs232_sender_state is
         when S_WAIT => 
           if rs232_sender_ack = '0' and has_byte then
-            rs232_sender_dat <= unsigned(byte);
             has_byte := false;
+            rs232_sender_dat <= unsigned(byte);
             rs232_sender_stb <= '1';
             rs232_sender_state <= S_DOIT;
           end if;
@@ -401,8 +449,17 @@ begin
                     when X"03" =>
                       if has_byte then
                         has_byte := false;
-                        --button_rs232_data_i <= byte;
-                        button_data_o <= byte;
+                        button_rs232_data_i <= byte;
+                        --button_data_o <= byte;
+                        len := len - '1';
+                        device_send <= S_WAIT;
+                      end if;
+                    when X"04" =>
+                      if has_byte then
+                        has_byte := false;
+                        web_rotary_rot_a_i <= byte(0);
+                        web_rotary_rot_b_i <= byte(1);
+                        web_rotary_rot_center_i <= byte(2);
                         len := len - '1';
                         device_send <= S_WAIT;
                       end if;
@@ -426,6 +483,10 @@ begin
                   when X"03" =>
                     fifo_ReadEn <= '0';
                     device_send <= S_DOIT;  
+                  -- Rotary
+                  when X"04" =>
+                    fifo_ReadEn <= '0';
+                    device_send <= S_DOIT;
                   -- Если устройство не найдено, то реинициализация    
                   when others =>
                     fifo_ReadEn <= '0';
@@ -443,107 +504,140 @@ begin
     variable i: integer := 0;
     variable code: std_logic_vector(7 downto 0) := (others => '0');
     variable len: std_logic_vector(15 downto 0) := (others => '0'); 
-    variable resolve_receive: boolean;
+    variable resolve_receive: boolean := false;
+    variable was_full: boolean := false;
   begin
-    if rising_edge(clk_main) and fifo_out_Full /= '1' then
-      --
-      case device_receive is
-        when S_WAIT =>
-          -- Если никакое устройство сейчас не ждет начала приема
-          if resolve_receive = false then
-            -- Выбираем устройство, которое готово передавать данные
-            -- [ Эхо устройство ]
-            if echo_ready_send_o = '1' then
-              resolve_receive := true;
-              code := X"01";
-
-            -- [ LED ] --
-            elsif led_strobe = '1' then
-              resolve_receive := true;
-              code := X"02";
-            end if;
+    if rising_edge(clk_main) then
+      -- если буфер не заполнен, то можно принимать данные
+      if fifo_out_Full /= '1' then
+        -- если буффер освободился, то пропускаем такт, в надежде на доотправку неотправленного байта
+        if was_full then
+          if device_receive = S_DOIT then
+            fifo_out_WriteEn <= '1';
           end if;
-          -- Если прием разрешен
-          if resolve_receive then
-            case code is
-              -- [ Эхо устройство ]
-              when X"01" =>
-                echo_ack_send_i <= '1';
-                if echo_stb_o = '1' then
-                  echo_ack_send_i <= '0';
-                  len := echo_package_length_o;
-                  device_receive <= S_DOIT;
-                  resolve_receive := false;
-                end if;
-              -- [ LED ] 
-              when X"02" =>
-                device_receive <= S_DOIT;
-                len := X"0001";
-                resolve_receive := false;                
-              when others =>
-                resolve_receive := false;
-            end case;
-          end if;
-        when S_DOIT =>
-          fifo_out_WriteEn <= '1';
-          case device_parser_receive is
-            when S_AA =>
-              fifo_out_DataIn <= X"AA";
-              device_parser_receive <= S_55;
-            when S_55 =>
-              fifo_out_DataIn <= X"55";
-              device_parser_receive <= S_LENGTH_HIGH;
-            when S_LENGTH_HIGH =>
-              fifo_out_DataIn <= len(15 downto 8);
-              device_parser_receive <= S_LENGTH_LOW;
-            when S_LENGTH_LOW =>
-              fifo_out_DataIn <= len(7 downto 0);
-              device_parser_receive <= S_CODE;
-            when S_CODE =>
-              -- 
-              case code is
-                -- [Эхо устройство]
-                when X"01" =>
-                  echo_ack_send_i <= '1';
-                -- [LED] -- [ Ack устанавливаем заранее, чтобы через такт установился строб ]
-                when X"02" =>
-                  led_ack <= '1';
-                when others =>
-                  null;
-              end case;
-              
-              fifo_out_DataIn <= code;
-              device_parser_receive <= S_DATA;
-            when S_DATA =>
-              -- 
-              case code is
-                -- [Эхо устройство]
-                when X"01" =>
-                  if echo_stb_o = '1' then
-                    fifo_out_DataIn <= echo_data_o;
-                  else
-                    echo_ack_send_i <= '0';
-                    device_receive <= S_WAIT;
-                    device_parser_receive <= S_AA;
-                    fifo_out_WriteEn <= '0';
-                  end if;
+          was_full := false;
+        else
+          fifo_out_WriteEn <= '0';
+          case device_receive is
+            when S_WAIT =>
+              -- Если никакое устройство сейчас не ждет начала приема
+              if resolve_receive = false then
+                -- Выбираем устройство, которое готово передавать данные
+                -- [ Эхо устройство ]
+                if echo_ready_send_o = '1' then
+                  resolve_receive := true;
+                  code := X"01";
                 -- [ LED ] --
-                when X"02" =>
-                  if led_strobe = '1' then
-                    fifo_out_DataIn <= std_logic_vector(led_o);
-                  else
-                    led_ack <= '0';
-                    device_receive <= S_WAIT;
-                    device_parser_receive <= S_AA;
-                    fifo_out_WriteEn <= '0'; 
-                  end if;
-                when others =>
-                  device_receive <= S_WAIT;
-                  device_parser_receive <= S_AA;
-                  fifo_out_WriteEn <= '0';
+                elsif led_strobe = '1' then
+                  resolve_receive := true;
+                  code := X"02";
+                -- [ WEB_OUTPUT ] --
+                elsif web_output_empty_o = '0' then
+                  resolve_receive := true;
+                  code := X"05";
+                end if;
+              end if;
+              -- Если прием разрешен
+              if resolve_receive then
+                case code is
+                  -- [ Эхо устройство ] --
+                  when X"01" =>
+                    echo_ack_send_i <= '1';
+                    if echo_stb_o = '1' then
+                      echo_ack_send_i <= '0';
+                      len := echo_package_length_o;
+                      device_receive <= S_DOIT;
+                      resolve_receive := false;
+                    end if;
+                  -- [ LED ] --
+                  when X"02" =>
+                    device_receive <= S_DOIT;
+                    len := X"0001";
+                    resolve_receive := false;
+                  -- [ WEB_OUTPUT ] --
+                  when X"05" =>
+                    device_receive <= S_DOIT;
+                    len := X"0001";
+                    resolve_receive := false;
+                  when others =>
+                    resolve_receive := false;
+                end case;
+              end if;
+            when S_DOIT =>
+              fifo_out_WriteEn <= '1';
+              case device_parser_receive is
+                when S_AA =>
+                  fifo_out_DataIn <= X"AA";
+                  device_parser_receive <= S_55;
+                when S_55 =>
+                  fifo_out_DataIn <= X"55";
+                  device_parser_receive <= S_LENGTH_HIGH;
+                when S_LENGTH_HIGH =>
+                  fifo_out_DataIn <= len(15 downto 8);
+                  device_parser_receive <= S_LENGTH_LOW;
+                when S_LENGTH_LOW =>
+                  fifo_out_DataIn <= len(7 downto 0);
+                  device_parser_receive <= S_CODE;
+                when S_CODE =>
+                  -- 
+                  case code is
+                    -- [Эхо устройство]
+                    when X"01" =>
+                      echo_ack_send_i <= '1';
+                    -- [LED] --
+                    when X"02" =>
+                    -- [ WEB_OUTPUT ] --
+                    when X"05" =>
+                      web_output_read_i <= '1';
+                    when others =>
+                      null;
+                  end case;
+                  
+                  fifo_out_DataIn <= code;
+                  device_parser_receive <= S_DATA;
+                when S_DATA =>
+                  -- 
+                  case code is
+                    -- [Эхо устройство]
+                    when X"01" =>
+                      if echo_stb_o = '1' then
+                        fifo_out_DataIn <= echo_data_o;
+                      else
+                        echo_ack_send_i <= '0';
+                        device_receive <= S_WAIT;
+                        device_parser_receive <= S_AA;
+                        fifo_out_WriteEn <= '0';
+                      end if;
+                    -- [ LED ] --
+                    when X"02" =>
+                      if led_strobe = '1' then
+                        led_ack <= '1';
+                        fifo_out_DataIn <= led_o;
+                      else
+                        led_ack <= '0';
+                        device_receive <= S_WAIT;
+                        device_parser_receive <= S_AA;
+                        fifo_out_WriteEn <= '0'; 
+                      end if;
+                    when X"05" =>
+                      fifo_out_DataIn <= web_output_data_o;
+                      web_output_read_i <= '0';
+                      device_receive <= S_WAIT;
+                      device_parser_receive <= S_AA;
+                    when others =>
+                      device_receive <= S_WAIT;
+                      device_parser_receive <= S_AA;
+                      fifo_out_WriteEn <= '0';
+                  end case;
               end case;
           end case;
-      end case;
+        end if;
+      else
+        -- если буффер заполнен, то запрещаем запись
+        fifo_out_WriteEn <= '0';
+        -- устанавливаем флаг, чтобы потом дозаписать байт, который не поместился
+        was_full := true;   
+      end if;
     end if;
   end process;
   
@@ -551,8 +645,20 @@ begin
   -- USER CODE
   inst_user_code: entity work.user_code
     port map(
+      -- [ LED ] --
       led => led_i,
+      -- [ BUTTONS ] --
       buttons => button_data_o,
+      -- [ WEB_OTPUT ] --
+      web_output_write_o => web_output_write_i,
+      web_output_data_o => web_output_data_i,
+      web_output_ready_i => web_output_full_o,
+
+      rot_a => web_rotary_rot_a_o,
+      rot_b => web_rotary_rot_b_o,
+      rot_center => web_rotary_rot_center_o, 
+
+      reset_o => reset,
       clk => clk_main
     );
 
