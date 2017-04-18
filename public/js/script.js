@@ -33,13 +33,22 @@ $(function () {
                 }
                 window.Board.inData(data);
                 break;
+            // индикация подключения к ком порту
+            case "serialConnect":
+                $("#rs232_btn").prop("checked", !!data);
+                break;
         }
     });
+
     Board.outData(function(data) {
         socket.emit("board", "serialData", {
             data: data.data,
             code: this.getCode()
         });
+    });
+    // Подключение к com порту
+    $("#rs232_btn").on("change", function() {
+        socket.emit("board", "serialConnect", $(this).prop("checked"));
     });
 
     /*

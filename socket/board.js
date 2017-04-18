@@ -151,37 +151,55 @@ var ComPacket = (function() {
  * Подключает сокет к ком порту
  */
 var connectToComPort = function(socket) {
-    if (!socket.handshake.board)
+    // если плата не выбрана, то выходим и сообщаем клиенту, что подключение не удалось
+    if (!!socket.handshake.board === false) {
+        socket.emit("board", "serialConnect", false);
         return false;
-    if (socket.handshake.SerialPort)
-        return false;
+    }
+    // Если объекта соединения нет
+    if (!!socket.handshake.SerialPort === false) {
+        // создаем подключение к ком порту
+        socket.handshake.SerialPort = new SerialPort(
+            socket.handshake.board.comport,
+            {
+                autoOpen: false,
+                baudRate: socket.handshake.board.baudRate,
+                parser: SerialPort.parsers.byteLength(1)
+            }
+        );
+        // Принятие данных от платы
+        socket.handshake.SerialPort.on("data", function (data) {
+            ComPacket.push(data);
+            if (ComPacket.isFilled()) {
+                socket.emit("board", "data", ComPacket.flush());
+            }
+        });
+        // Если соединение закрывается, сообщаем пользователю
+        socket.handshake.SerialPort.on('close', function() {
+            socket.emit("put console", "Com port connection closed");
+            socket.emit("board", "serialConnect", false);
+        });
+        // Ошибки отдаем в консоль пользователю
+        socket.handshake.SerialPort.on('error', function(err) {
+            socket.emit("put console", err.message);
+        });
+    }
+    // Если соединение активно, то отправляем клиенту
+    if (socket.handshake.SerialPort.isOpen()) {
+        socket.emit("board", "serialConnect", true);
+    } else {
+        // иначе открываем соединение
+        socket.handshake.SerialPort.open(function(err) {
+            if (err) {
+                socket.emit("put console", "Failed connect to " + socket.handshake.board.comport + " . " + err.message);
+                socket.emit("board", "serialConnect", false);
+            } else {
+                socket.emit("put console", "Connect to " + socket.handshake.board.comport+" successful");
+                socket.emit("board", "serialConnect", true);
+            }
+        });
+    }
 
-    socket.handshake.SerialPort = new SerialPort(
-        socket.handshake.board.comport,
-        {
-            autoOpen: false,
-            baudRate: socket.handshake.board.baudRate,
-            parser: SerialPort.parsers.byteLength(1)
-        }
-    );
-    socket.handshake.SerialPort.open(function(err) {
-        if (err) {
-            socket.emit("put console", "Failed connect to " + socket.handshake.board.comport);
-        } else {
-            socket.emit("put console", "Connect to " + socket.handshake.board.comport+" successful");
-            socket.handshake.SerialPort.on("data", function(data) {
-                console.log(data);
-                ComPacket.push(data);
-                if (ComPacket.isFilled()) {
-                    socket.emit("board", "data", ComPacket.flush());
-                }
-            });
-        }
-    }).on('disconnect', function() {
-        socket.emit("put console", socket.handshake.board.comport + " disconnected");
-        socket.handshake.SerialPort.close();
-        socket.handshake.SerialPort = null;
-    });
 };
 
 module.exports = function(socket) {
@@ -210,6 +228,13 @@ module.exports = function(socket) {
                 if (socket.handshake.SerialPort && socket.handshake.SerialPort.isOpen()) {
                     var buf = ComPacket.create(data);
                     socket.handshake.SerialPort.write(buf);
+                }
+                break;
+            case "serialConnect":
+                if (data) {
+                    connectToComPort(socket);
+                } else if(socket.handshake.SerialPort.isOpen()) {
+                    socket.handshake.SerialPort.close();
                 }
                 break;
         }

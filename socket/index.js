@@ -143,7 +143,7 @@ module.exports = function(server) {
             socket.handshake.board.updateExpires();
         }
         // Проверка авторизации пользователя
-        socket.use(function(package, next) {
+        socket.use(function(pack, next) {
             async.waterfall([
                 function(callback) {
                     var handshakeData = socket.request;

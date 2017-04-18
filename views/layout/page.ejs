@@ -12,13 +12,16 @@
 <%-partial('../partials/header')%>
 <div class="container-fluid">
     <div class="row change-width">
-        <section class="col-xs-3 color-50">
+        <section class="col-sm-3 color-50">
             <%-partial('../partials/fileManager')%>
         </section>
-        <section class="col-xs-6">
-            <%-partial('../partials/console')%>
+        <section class="col-sm-6">
+            <div class="center-container">
+                <%-partial('../partials/board')%>
+                <%-partial('../partials/console')%>
+            </div>
         </section>
-        <section class="col-xs-3 color-200">
+        <section class="col-sm-3 color-200">
             <div class="right-side-container">
                 <div class="row">
                     <%-partial('../partials/video')%>

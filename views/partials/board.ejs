@@ -1,0 +1,85 @@
+<div class="board container row">
+    <div class="board__middle row">
+        <div class="col-xs-4">
+            <div class="rs232">
+                <div class="board-ico-btn rs232__btn" title="COM порт">
+                    <input type="checkbox" id="rs232_btn" class="board-ico-btn__checkbox">
+                    <label for="rs232_btn" class="board-ico-btn__label"></label>
+                </div>
+            </div>
+        </div>
+        <div class="col-xs-4">
+            <div class="keyboard">
+                <div class="board-ico-btn keyboard__btn" title="Клавиатура">
+                    <input type="checkbox" id="keyboard_btn" class="board-ico-btn__checkbox">
+                    <label for="keyboard_btn" class="board-ico-btn__label"></label>
+                </div>
+                <div class="keyboard__led">
+                    <span class="keyboard__caps-lock led" data-text="CL" title="Caps-lock"></span>
+                    <span class="keyboard__num-lock led" data-text="NL" title="Num-lock"></span>
+                    <span class="keyboard__scroll-lock led" data-text="SL" title="Scroll-lock"></span>
+                </div>
+            </div>
+        </div>
+        <div class="col-xs-4">
+            <div class="mouse">
+                <div class="board-ico-btn mouse__btn" title="Мышь">
+                    <input type="checkbox" id="mouse_btn" class="board-ico-btn__checkbox">
+                    <label for="mouse_btn" class="board-ico-btn__label"></label>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="board__down row">
+        <div class="board__left col-sm-3">
+            <div class="board__push-btn-north">
+                <button class="push-button"></button>
+            </div>
+            <div class="board__push-btn-west">
+                <button class="push-button"></button>
+            </div>
+            <div class="board__push-btn-east">
+                <button class="push-button"></button>
+            </div>
+            <div class="board__rotary">
+                <div class="rotary" tabindex="-1"></div>
+            </div>
+            <div class="board__push-btn-south">
+                <button class="push-button"></button>
+            </div>
+        </div>
+        <div class="board__center col-sm-6">
+            <canvas class="lcd"></canvas>
+        </div>
+        <div class="board__right col-sm-3">
+            <div class="board__led row">
+                <span class="led"></span>
+                <span class="led"></span>
+                <span class="led"></span>
+                <span class="led"></span>
+                <span class="led"></span>
+                <span class="led"></span>
+                <span class="led"></span>
+                <span class="led"></span>
+            </div>
+            <div class="board__switches row">
+                <div class="switch-button">
+                    <input id="sw1" type="checkbox" class="switch-button__checkbox">
+                    <label for="sw1" class="switch-button__label"></label>
+                </div>
+                <div class="switch-button">
+                    <input id="sw2" type="checkbox" class="switch-button__checkbox">
+                    <label for="sw2" class="switch-button__label"></label>
+                </div>
+                <div class="switch-button">
+                    <input id="sw3" type="checkbox" class="switch-button__checkbox">
+                    <label for="sw3" class="switch-button__label"></label>
+                </div>
+                <div class="switch-button">
+                    <input id="sw4" type="checkbox" class="switch-button__checkbox">
+                    <label for="sw4" class="switch-button__label"></label>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
