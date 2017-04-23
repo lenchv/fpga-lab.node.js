@@ -12,10 +12,15 @@ entity top is
     rs232_dce_rxd: in std_logic;
     led: out std_logic_vector(7 downto 0);
     buttons: in std_logic_vector(7 downto 0);
-
+    -- ROTARY
     rot_a: in std_logic;
     rot_b: in std_logic;
-    rot_center: in std_logic
+    rot_center: in std_logic;
+    -- PS/2
+    PS2_CLK1: inout std_logic;
+    PS2_DATA1: inout std_logic;
+    PS2_CLK2: inout std_logic;
+    PS2_DATA2: inout std_logic
   );
 end top;
 
@@ -247,7 +252,7 @@ begin
     );
   -- [ WEB_OUTPUT ] - [0x05] -- [ Вывод данных в консоль браузера ] --
   inst_web_output: entity work.fifo
-    generic map (2, 8)
+    generic map (8, 8)
     port map ( 
       CLK => clk_main,
       RST => reset,
@@ -532,7 +537,7 @@ begin
                   resolve_receive := true;
                   code := X"02";
                 -- [ WEB_OUTPUT ] --
-                elsif web_output_empty_o = '0' then
+                elsif web_output_empty_o /= '1' then
                   resolve_receive := true;
                   code := X"05";
                 end if;
@@ -652,11 +657,16 @@ begin
       -- [ WEB_OTPUT ] --
       web_output_write_o => web_output_write_i,
       web_output_data_o => web_output_data_i,
-      web_output_ready_i => web_output_full_o,
+      web_output_ready_i => not web_output_full_o,
 
       rot_a => web_rotary_rot_a_o,
       rot_b => web_rotary_rot_b_o,
       rot_center => web_rotary_rot_center_o, 
+
+      ps2_data1 => PS2_DATA1,
+      ps2_clk1 => PS2_CLK1,
+      ps2_data2 => PS2_DATA2,
+      ps2_clk2 => PS2_CLK2,
 
       reset_o => reset,
       clk => clk_main
