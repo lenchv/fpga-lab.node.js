@@ -5,8 +5,6 @@ library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 use ieee.numeric_std.all;
 use IEEE.STD_LOGIC_UNSIGNED.ALL;
-library UNISIM;
-use UNISIM.Vcomponents.ALL;
 
 entity user_code is
   port(
@@ -21,6 +19,9 @@ entity user_code is
     rot_b: in std_logic;
     rot_center: in std_logic;
     -- PS/2
+    web_ps2_kbd_data: inout std_logic;
+    web_ps2_kbd_clk: inout std_logic;
+
     ps2_data1: inout std_logic;
     ps2_clk1: inout std_logic;
     ps2_data2: inout std_logic;
@@ -35,21 +36,6 @@ end user_code;
 architecture Behavioral of user_code is
   signal reset : std_logic := '1';
 
-  component IOBUF
-    port ( 
-      I  : in    std_logic; 
-      IO : inout std_logic; 
-      O  : out   std_logic; 
-      T  : in    std_logic
-    );
-  end component;
-  
-  component GND
-    port ( 
-      G : out std_logic
-    );
-  end component;
-
   signal idle: std_logic;
   signal tx_data, rx_data: std_logic_vector(7 downto 0);
   signal tx_wr_ps2: std_logic;
@@ -59,39 +45,24 @@ architecture Behavioral of user_code is
 
   signal s : state := send_ED;
 
-  signal XLXN_36, XLXN_35, XLXN_38, XLXN_7, XLXN_32, XLXN_8: std_logic;
+  signal XLXN_38, XLXN_32: std_logic;
 
-  signal led_kbd: std_logic_vector(2 downto 0) := (others => '0');
+  signal led_kbd: std_logic_vector(7 downto 0) := (others => '0');
 begin
   reset_o <= reset;
-  reset <= '0' after 100 ns;
+  reset <= '0' after 40 ns;
   
-   inst_buf_data : IOBUF
-      port map (I=>XLXN_36,
-                T=>XLXN_38,
-                O=>XLXN_7,
-                IO=>ps2_data1);
-   
-   inst_buf_clk : IOBUF
-      port map (I=>XLXN_35,
-                T=>XLXN_32,
-                O=>XLXN_8,
-                IO=>ps2_clk1);
-   
-   XLXI_15 : GND
-      port map (G=>XLXN_35);
-   
-   XLXI_16 : GND
-      port map (G=>XLXN_36);
+  web_ps2_kbd_data <= '0' when XLXN_38 = '0' else 'Z';
+  web_ps2_kbd_clk <= '0' when XLXN_32 = '0' else 'Z';
 
-  inst_ps2_tx: entity ps2_tx
+  inst_ps2_tx: entity work.ps2_tx
   port map (
     clk => clk, 
     reset => reset,
     ps2d_out => XLXN_38,
     ps2c_out => XLXN_32,
-    ps2d_in => XLXN_7,
-    ps2c_in => XLXN_8,
+    ps2d_in => web_ps2_kbd_data,
+    ps2c_in => web_ps2_kbd_clk,
     tx_idle => idle,
     
     din => tx_data,
@@ -99,34 +70,44 @@ begin
     tx_done => tx_done
   );
 
-  inst_ps2_rx: entity ps2_rx
+  inst_ps2_rx: entity work.ps2_rx
   port map (
     clk => clk, 
     reset => reset,
-    ps2d => XLXN_7,
-    ps2c => XLXN_8,
+    ps2d => web_ps2_kbd_data,
+    ps2c => web_ps2_kbd_clk,
     rx_en => idle,
 
     rx_done => rx_done,
     dout => rx_data
   );
 
-  rec_data_proc: process(clk)
+
+  rec_data_proc: process(clk, reset)
   begin
-    if rising_edge(clk) then
+    if reset = '1' then
       web_output_write_o <= '0';
-      if rx_done='1' then
+      web_output_data_o <= (others => '0');
+    elsif rising_edge(clk) then
+      web_output_write_o <= '0';
+      if rot_center = '1' then
         web_output_write_o <= '1';
         web_output_data_o <= rx_data;
       end if;
     end if;
   end process;
 
-  send_data_proc: process(clk)
+  send_data_proc: process(clk, reset)
     variable realesed: boolean := false;
   begin
-	  if rising_edge(clk) then
+    if reset = '1' then
+	    led_kbd <= (others => '0');
+      led <= (others => '0');
+    elsif rising_edge(clk) then
       tx_wr_ps2 <= '0';
+      if rot_center = '1' then
+        led_kbd <= buttons;
+      end if;
       case s is
         when send_ED =>
           if rot_center = '1' then
@@ -134,6 +115,7 @@ begin
             tx_wr_ps2 <= '1';
             s <= rec_ack;
           elsif rx_done='1' then
+            led <= rx_data;
             if realesed then
               realesed := false;
             else
@@ -181,8 +163,7 @@ begin
             end if;
           end if;
         when send_lock =>
-          led <= "00000" & led_kbd;
-          tx_data <= "00000" & led_kbd;
+          tx_data <= led_kbd;
           tx_wr_ps2 <= '1';
           s <= wait_send;
         when wait_send =>

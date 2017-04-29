@@ -65,7 +65,7 @@ ARCHITECTURE behavior OF tb_top IS
    signal led : std_logic_vector(7 downto 0);
 
    -- Clock period definitions
-   constant clk_50mhz_period : time := 10 ns;
+   constant clk_50mhz_period : time := 20 ns;
 
    type state_type is (
     s_start,
@@ -95,27 +95,35 @@ ARCHITECTURE behavior OF tb_top IS
       (X"AA"),
       (X"55"),
       (X"00"),
+      (X"05"),
       (X"01"),
-      (X"04"),
-      (X"07"),
-      (X"AA"),
-      (X"55"),
-      (X"00"),
       (X"01"),
-      (X"04"),
-      (X"06"),
-      (X"AA"),
-      (X"55"),
-      (X"00"),
-      (X"01"),
-      (X"04"),
-      (X"04"),
-      (X"AA"),
-      (X"55"),
-      (X"00"),
-      (X"01"),
+      (X"02"),
+      (X"03"),
       (X"04"),
       (X"05"),
+
+      (X"AA"),
+      (X"55"),
+      (X"00"),
+      (X"01"),
+      (X"06"),
+      (X"58"),
+      (X"AA"),
+      (X"55"),
+      (X"00"),
+      (X"02"),
+      (X"06"),
+      (X"F0"),
+      (X"58"),
+
+
+      (X"AA"),
+      (X"55"),
+      (X"00"),
+      (X"01"),
+      (X"06"),
+      (X"FA"),
     others => (others => '0')
     );
     signal buff_out: bufer_type := (others => (others => '0'));
@@ -150,7 +158,7 @@ BEGIN
     variable bit_counter: integer := max_counter;
    begin    
       if rising_edge(clk_50mhz) then
-        if i < 24 then
+        if i < 29 then
 
           case state is
             when s_start =>
@@ -186,5 +194,5 @@ BEGIN
         end if;
       end if;     
    end process;
-   buttons <= X"F0";
+   --buttons <= X"F0";
 END;
