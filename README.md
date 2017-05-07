@@ -103,4 +103,6 @@ $ npm i serialport
 <li><a href="http://www.xess.com/static/media/projects/ps2_ctrl.pdf">Simple PS/2</a></li>
 <li><a href="https://eewiki.net/pages/viewpage.action?pageId=28278929">Keyboard VHDL example</a></li>
 <li><a href="https://www.youtube.com/watch?v=A1YSbLnm4_o">Mouse VHDL example (video)</a></li>
+<li><a href="https://github.com/mlen/vhdl-paint">VHDL-paint</a></li>
+<li><a href="http://4a4ik.blogspot.com/2015/07/ps2.html">PS/2 guide</a></li>
 </ul>
