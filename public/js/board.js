@@ -144,6 +144,8 @@
                             leds.set(data.data.data[i++]);
                         }
                         break;
+                    case 6:
+                        keyboard.command(data.data.data[0]);
                     /*case 3:
                         while (size-- > 0) {
                             buttons.set(data.data.data[i++]);
@@ -155,6 +157,7 @@
                 // leds.change(callback);
                 buttons.change(callback);
                 rotar.change(callback);
+                keyboard.change(callback);
             }
         };
     })();

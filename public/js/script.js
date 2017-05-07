@@ -27,7 +27,7 @@ $(function () {
         switch(type) {
             case "data":
                 if (data.code == 5) {
-                    userConsole.put(data.data.data);
+                    userConsole.put(parseInt(data.data.data).toString(16));
                 } else {
                     userConsole.put(JSON.stringify(data));
                 }
