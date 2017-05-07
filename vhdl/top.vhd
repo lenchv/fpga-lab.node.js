@@ -290,8 +290,12 @@ begin
     data_o => web_kbd_data_o,
     tx_done => web_kbd_tx_done,
     ps2d => web_kbd_ps2d,
-    ps2c => web_kbd_ps2c
+    ps2c => web_kbd_ps2c,
+    led => open
   );
+
+
+
   -- [PROCESS STATEMENTS] --
 
   -- [ Обработчик принятия байта с COM порта] --
