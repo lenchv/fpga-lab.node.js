@@ -9,6 +9,8 @@
         var Led = window.BoardControllers.Led;
         var Rotary = window.BoardControllers.Rotary;
         var Keyboard = window.BoardControllers.Keyboard;
+        var Mouse = window.BoardControllers.Mouse;
+        var Lcd = window.BoardControllers.Lcd;
         // кнопки
         var buttons = (function() {
             var buttons = [],
@@ -106,7 +108,9 @@
         /** Класс для работы с крутилкой */
         var _this = null,
             rotar = null,
-            keyboard = null;
+            keyboard = null,
+            mouse = null,
+            lcd = null;
         return {
             init: function(selector) {
                 _this = this;
@@ -128,6 +132,8 @@
                 rotar = new Rotary(_this.board.find(".rotary")[0]);
 
                 keyboard = new Keyboard(".keyboard");
+                mouse = new Mouse('.mouse');
+                lcd = new Lcd('.lcd');
             },
             buttonChangeHandler: function(data) {
                 leds.set(buttons.getByte());
@@ -146,6 +152,8 @@
                         break;
                     case 6:
                         keyboard.command(data.data.data[0]);
+                    case 7:
+                        mouse.command(data.data.data[0]);
                     /*case 3:
                         while (size-- > 0) {
                             buttons.set(data.data.data[i++]);
@@ -158,6 +166,7 @@
                 buttons.change(callback);
                 rotar.change(callback);
                 keyboard.change(callback);
+                mouse.change(callback);
             }
         };
     })();

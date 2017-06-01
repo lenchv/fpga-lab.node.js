@@ -23,6 +23,15 @@
             }
         }
     };
-
+    Controller.prototype.change = function(callback) {
+        this.on("change", (function(that) {
+            return function(data) {
+                callback.apply(that, [data]);
+            }
+        })(this));
+    };
+    Controller.prototype.getCode = function() {
+        return 0;
+    };
     window.BoardControllers.Controller = Controller;
 })(window);
