@@ -152,8 +152,10 @@
                         break;
                     case 6:
                         keyboard.command(data.data.data[0]);
+                        break;
                     case 7:
                         mouse.command(data.data.data[0]);
+                        break;
                     /*case 3:
                         while (size-- > 0) {
                             buttons.set(data.data.data[i++]);
