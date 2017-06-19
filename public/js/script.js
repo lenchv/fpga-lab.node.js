@@ -43,7 +43,8 @@ $(function () {
     Board.outData(function(data) {
         socket.emit("board", "serialData", {
             data: data.data,
-            code: this.getCode()
+            code: this.getCode(),
+            start: Date.now()
         });
     });
     // Подключение к com порту
@@ -92,5 +93,4 @@ $(function () {
         socket.emit("video-play", play);
     });
 });
-
 

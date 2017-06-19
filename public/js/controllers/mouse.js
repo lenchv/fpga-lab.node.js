@@ -20,9 +20,13 @@
             0x00
         ];
 
+        var userConsole = window.Terminal("#console").init();
         _this.button.on("change", function() {
             _this.enabled = $(this).prop("checked");
             if (_this.enabled) {
+                userConsole.put("aa");
+                userConsole.put("00");
+                userConsole.put('{"size":1,"code":7,"data":{"type":"Buffer","data":[244]}}');
                 $(document).on('mousemove', mouseMoveHandler);
                 $(document).on('mousedown', mouseClickHandler);
                 $(document).on('mouseup', mouseClickHandler);
@@ -98,6 +102,7 @@
         };
 
         var packChange = function() {
+            userConsole.put(_this.data[0].toString(16) +", "+ _this.data[1].toString(16) +", " +_this.data[2].toString(16) +", " +_this.data[3].toString(16));
             _this.emit("change", {data: _this.data});
             /*
             var show = [];
